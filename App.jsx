@@ -1,3 +1,4 @@
+import './index.css'
 import { useState, useRef, useEffect, useCallback } from "react";
 
 // ─────────────────────────────────────────────
