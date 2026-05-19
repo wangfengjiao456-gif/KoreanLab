@@ -18,18 +18,7 @@ const COURSES = [
     ]
   },
   {
-    id: 2, level: "Level 3", levelColor: "blue", title: "市场营销专家的品牌战略访谈",
-    duration: "18:40", listeners: "2.4k", cover: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=80",
-    tags: ["中级", "商务"], description: "深度对话韩国顶级品牌营销人，学习商务场合的专业韩语。",
-    script: [
-      { kr: "브랜드 전략에 대해 이야기해 주세요.", cn: "请谈谈关于品牌战略的内容。" },
-      { kr: "소비자 심리를 이해하는 것이 중요합니다.", cn: "理解消费者心理非常重要。" },
-      { kr: "시장 조사를 철저히 해야 합니다.", cn: "必须进行深入的市场调查。" },
-      { kr: "경쟁사 분석도 필수적이에요.", cn: "竞争对手分析也是必不可少的。" },
-    ]
-  },
-  {
-    id: 3, level: "Level 2", levelColor: "green", title: "韩国美食文化深度体验",
+    id: 2, level: "Level 2", levelColor: "green", title: "韩国美食文化深度体验",
     duration: "15:30", listeners: "3.1k", cover: "https://images.unsplash.com/photo-1498654896293-37aacf113fd9?w=400&q=80",
     tags: ["初级", "生活"], description: "从街边小吃到高级料理，用韩语探索韩国饮食文化。",
     script: [
@@ -37,6 +26,17 @@ const COURSES = [
       { kr: "맵지 않게 해 주세요.", cn: "请做得不辣一点。" },
       { kr: "정말 맛있어요!", cn: "真的很好吃！" },
       { kr: "계산서 주세요.", cn: "请给我账单。" },
+    ]
+  },
+  {
+    id: 3, level: "Level 3", levelColor: "pink", title: "韩剧台词学习：经典浪漫场景",
+    duration: "14:20", listeners: "5.6k", cover: "https://images.unsplash.com/photo-1616353071855-2c045c4587a7?w=400&q=80",
+    tags: ["初级", "娱乐"], description: "通过经典韩剧名场面，轻松学习日常韩语对话。",
+    script: [
+      { kr: "사랑해요.", cn: "我爱你。" },
+      { kr: "보고 싶었어요.", cn: "我很想你。" },
+      { kr: "당신이 최고예요.", cn: "你是最棒的。" },
+      { kr: "함께 있어 주세요.", cn: "请陪着我。" },
     ]
   },
   {
@@ -50,18 +50,18 @@ const COURSES = [
     ]
   },
   {
-    id: 5, level: "Level 2", levelColor: "pink", title: "韩剧台词学习：经典浪漫场景",
-    duration: "14:20", listeners: "5.6k", cover: "https://images.unsplash.com/photo-1616353071855-2c045c4587a7?w=400&q=80",
-    tags: ["初级", "娱乐"], description: "通过经典韩剧名场面，轻松学习日常韩语对话。",
+    id: 5, level: "Level 5", levelColor: "blue", title: "市场营销专家的品牌战略访谈",
+    duration: "18:40", listeners: "2.4k", cover: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&q=80",
+    tags: ["中级", "商务"], description: "深度对话韩国顶级品牌营销人，学习商务场合的专业韩语。",
     script: [
-      { kr: "사랑해요.", cn: "我爱你。" },
-      { kr: "보고 싶었어요.", cn: "我很想你。" },
-      { kr: "당신이 최고예요.", cn: "你是最棒的。" },
-      { kr: "함께 있어 주세요.", cn: "请陪着我。" },
+      { kr: "브랜드 전략에 대해 이야기해 주세요.", cn: "请谈谈关于品牌战略的内容。" },
+      { kr: "소비자 심리를 이해하는 것이 중요합니다.", cn: "理解消费者心理非常重要。" },
+      { kr: "시장 조사를 철저히 해야 합니다.", cn: "必须进行深入的市场调查。" },
+      { kr: "경쟁사 분석도 필수적이에요.", cn: "竞争对手分析也是必不可少的。" },
     ]
   },
   {
-    id: 6, level: "Level 3", levelColor: "blue", title: "职场韩语：会议与汇报",
+    id: 6, level: "Level 6", levelColor: "blue", title: "职场韩语：会议与汇报",
     duration: "20:10", listeners: "980", cover: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80",
     tags: ["中级", "商务"], description: "掌握韩国职场中开会、汇报和沟通的专业表达方式。",
     script: [
