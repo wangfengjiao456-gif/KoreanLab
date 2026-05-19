@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { box-sizing: border-box; }
+body {
+  font-family: 'Noto Sans SC', sans-serif;
+  background: #F1F5F9;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+::-webkit-scrollbar { display: none; }
