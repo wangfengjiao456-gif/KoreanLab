@@ -524,10 +524,13 @@ function SubscribePage({ isVip, onSubscribe }) {
   const [paying, setPaying] = useState(false);
   const [paid, setPaid] = useState(false);
 
-  const handlePay = () => {
-    setPaying(true);
-    setTimeout(() => { setPaying(false); setPaid(true); onSubscribe(); }, 1500);
-  };
+const [showQR, setShowQR] = useState(false);
+const [qrType, setQrType] = useState("wechat");
+
+const handlePay = () => {
+  setShowQR(true);
+};
+
 
   if (paid) return (
     <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
@@ -616,7 +619,32 @@ function SubscribePage({ isVip, onSubscribe }) {
       </button>
       <p className="text-center text-[10px] text-slate-400 mt-3">支持随时取消，到期不自动续费</p>
     </div>
-  );
+  );{showQR && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6" onClick={() => setShowQR(false)}>
+    <div className="bg-white rounded-3xl p-6 w-full max-w-xs shadow-2xl" onClick={e => e.stopPropagation()}>
+      <h3 className="text-base font-bold text-slate-900 text-center mb-4">扫码完成支付</h3>
+      <div className="flex gap-2 mb-4">
+        <button onClick={() => setQrType("wechat")}
+          className={`flex-1 py-2 rounded-xl text-xs font-bold transition ${qrType === "wechat" ? "bg-green-500 text-white" : "bg-slate-100 text-slate-600"}`}>
+          微信支付
+        </button>
+        <button onClick={() => setQrType("alipay")}
+          className={`flex-1 py-2 rounded-xl text-xs font-bold transition ${qrType === "alipay" ? "bg-blue-500 text-white" : "bg-slate-100 text-slate-600"}`}>
+          支付宝
+        </button>
+      </div>
+      {qrType === "wechat" ? (
+        <img src="https://i.ibb.co/KpRK5ZRS" alt="微信收款码" className="w-full rounded-2xl" />
+      ) : (
+        <img src="https://i.ibb.co/5gK1wr1P" alt="支付宝收款码" className="w-full rounded-2xl" />
+      )}
+      <p className="text-xs text-slate-500 text-center mt-3">付款后请截图发送给客服开通权限</p>
+      <p className="text-xs text-blue-600 text-center font-bold mt-1">微信：k-pod客服</p>
+      <button onClick={() => setShowQR(false)} className="w-full mt-4 py-2.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-xl">关闭</button>
+    </div>
+  </div>
+)}
+
 }
 
 // ─────────────────────────────────────────────
