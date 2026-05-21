@@ -594,11 +594,12 @@ function SubscribePage({ isVip, onSubscribe }) {
                 支付宝
               </button>
             </div>
-            {qrType === "wechat" ? (
-              <img src="https://i.ibb.co/KpRK5ZRS" alt="微信收款码" className="w-full rounded-2xl" />
-            ) : (
-              <img src="https://i.ibb.co/5gK1wr1P" alt="支付宝收款码" className="w-full rounded-2xl" />
-            )}
+          {qrType === "wechat" ? (
+  <img src="https://i.ibb.co/KpRK5ZRS/image.jpg" alt="微信收款码" className="w-full rounded-2xl" />
+) : (
+  <img src="https://i.ibb.co/5gK1wr1P/image.jpg" alt="支付宝收款码" className="w-full rounded-2xl" />
+)}
+
             <p className="text-xs text-slate-500 text-center mt-3">付款后请截图发送给客服开通权限</p>
             <p className="text-xs text-blue-600 text-center font-bold mt-1">微信：k-pod客服</p>
             <button onClick={() => setShowQR(false)} className="w-full mt-4 py-2.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-xl">关闭</button>
