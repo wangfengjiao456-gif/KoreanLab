@@ -574,7 +574,7 @@ function SubscribePage({ isVip, onSubscribe }) {
           ))}
         </div>
       </div>
-      <button onClick={handlePay}
+<button onClick={() => setShowQR(true)}
         className="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl text-sm shadow-lg hover:bg-slate-800 transition flex items-center justify-center gap-2">
         立即订阅 {plan === "yearly" ? "¥199/年" : "¥28/月"}
       </button>
