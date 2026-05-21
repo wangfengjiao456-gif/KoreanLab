@@ -519,44 +519,14 @@ function LearnPage({ course, setPage, onComplete, progress }) {
 // ─────────────────────────────────────────────
 // SUBSCRIBE PAGE
 // ─────────────────────────────────────────────
+
+
 function SubscribePage({ isVip, onSubscribe }) {
   const [plan, setPlan] = useState("yearly");
-  const [paying, setPaying] = useState(false);
-  const [paid, setPaid] = useState(false);
+  const [showQR, setShowQR] = useState(false);
+  const [qrType, setQrType] = useState("wechat");
 
-const [showQR, setShowQR] = useState(false);
-const [qrType, setQrType] = useState("wechat");
-
-const handlePay = () => {
-  setShowQR(true);
-};
-
-
-  if (paid) return (
-    <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
-      <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-4">
-        <Icon name="check" className="w-10 h-10 text-green-500" />
-      </div>
-      <h2 className="text-2xl font-black text-slate-900 mb-1">支付成功</h2>
-      <p className="text-slate-500 text-sm mb-6">感谢您的订阅，祝您学习愉快！</p>
-      <div className="w-full bg-slate-50 rounded-2xl p-5 mb-6 text-left space-y-3">
-        {[["已购方案", plan === "yearly" ? "年度 VIP 订阅" : "月度 VIP 订阅"], ["实付金额", plan === "yearly" ? "¥199.00" : "¥28.00"], ["支付时间", new Date().toLocaleString()], ["订单编号", "TRX_" + Math.random().toString().slice(2, 12)]].map(([k, v]) => (
-          <div key={k} className="flex justify-between items-center">
-            <span className="text-slate-500 text-xs">{k}</span>
-            <span className="text-slate-900 text-xs font-bold">{v}</span>
-          </div>
-        ))}
-      </div>
-      <div className="grid grid-cols-2 gap-3 w-full mb-4">
-        {[["无限次收听", "🎧"], ["离线下载", "📥"], ["精编讲义", "📄"], ["专属社群", "👥"]].map(([t, e]) => (
-          <div key={t} className="flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-3">
-            <span className="text-lg">{e}</span>
-            <span className="text-xs font-bold text-slate-700">{t}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  const handlePay = () => { setShowQR(true); };
 
   return (
     <div className="px-5 pb-4">
@@ -569,15 +539,11 @@ const handlePay = () => {
           </div>
         </div>
       )}
-
-      {/* Hero */}
       <div className="bg-gradient-to-br from-slate-900 to-blue-900 rounded-3xl p-6 mb-6 text-center">
         <p className="text-4xl mb-2">👑</p>
         <h2 className="text-white font-black text-xl mb-1">TEco Lab VIP 会员</h2>
         <p className="text-slate-400 text-xs">解锁所有课程，开启沉浸式学习体验</p>
       </div>
-
-      {/* Plan Selection */}
       <h3 className="text-sm font-bold text-slate-900 mb-3">选择方案</h3>
       <div className="space-y-3 mb-6">
         {[
@@ -592,15 +558,11 @@ const handlePay = () => {
                 <p className="text-sm font-bold text-slate-900">{p.label}</p>
                 <p className="text-xs text-slate-500">{p.sub}</p>
               </div>
-              <div className="text-right">
-                <p className="text-xl font-black text-blue-600">{p.price}</p>
-              </div>
+              <p className="text-xl font-black text-blue-600">{p.price}</p>
             </div>
           </div>
         ))}
       </div>
-
-      {/* Benefits */}
       <div className="bg-slate-50 rounded-2xl p-4 mb-6">
         <h4 className="text-xs font-bold text-slate-900 mb-3">会员权益</h4>
         <div className="grid grid-cols-2 gap-3">
@@ -612,38 +574,40 @@ const handlePay = () => {
           ))}
         </div>
       </div>
-
-      <button onClick={handlePay} disabled={paying}
-        className="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl text-sm shadow-lg hover:bg-slate-800 transition disabled:opacity-60 flex items-center justify-center gap-2">
-        {paying ? <><span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full" /> 处理中...</> : `立即订阅 ${plan === "yearly" ? "¥199/年" : "¥28/月"}`}
+      <button onClick={handlePay}
+        className="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl text-sm shadow-lg hover:bg-slate-800 transition flex items-center justify-center gap-2">
+        立即订阅 {plan === "yearly" ? "¥199/年" : "¥28/月"}
       </button>
       <p className="text-center text-[10px] text-slate-400 mt-3">支持随时取消，到期不自动续费</p>
-    </div>
-  );{showQR && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6" onClick={() => setShowQR(false)}>
-    <div className="bg-white rounded-3xl p-6 w-full max-w-xs shadow-2xl" onClick={e => e.stopPropagation()}>
-      <h3 className="text-base font-bold text-slate-900 text-center mb-4">扫码完成支付</h3>
-      <div className="flex gap-2 mb-4">
-        <button onClick={() => setQrType("wechat")}
-          className={`flex-1 py-2 rounded-xl text-xs font-bold transition ${qrType === "wechat" ? "bg-green-500 text-white" : "bg-slate-100 text-slate-600"}`}>
-          微信支付
-        </button>
-        <button onClick={() => setQrType("alipay")}
-          className={`flex-1 py-2 rounded-xl text-xs font-bold transition ${qrType === "alipay" ? "bg-blue-500 text-white" : "bg-slate-100 text-slate-600"}`}>
-          支付宝
-        </button>
-      </div>
-      {qrType === "wechat" ? (
-        <img src="https://i.ibb.co/KpRK5ZRS" alt="微信收款码" className="w-full rounded-2xl" />
-      ) : (
-        <img src="https://i.ibb.co/5gK1wr1P" alt="支付宝收款码" className="w-full rounded-2xl" />
+
+      {showQR && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6" onClick={() => setShowQR(false)}>
+          <div className="bg-white rounded-3xl p-6 w-full max-w-xs shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-base font-bold text-slate-900 text-center mb-4">扫码完成支付</h3>
+            <div className="flex gap-2 mb-4">
+              <button onClick={() => setQrType("wechat")}
+                className={`flex-1 py-2 rounded-xl text-xs font-bold transition ${qrType === "wechat" ? "bg-green-500 text-white" : "bg-slate-100 text-slate-600"}`}>
+                微信支付
+              </button>
+              <button onClick={() => setQrType("alipay")}
+                className={`flex-1 py-2 rounded-xl text-xs font-bold transition ${qrType === "alipay" ? "bg-blue-500 text-white" : "bg-slate-100 text-slate-600"}`}>
+                支付宝
+              </button>
+            </div>
+            {qrType === "wechat" ? (
+              <img src="https://i.ibb.co/KpRK5ZRS" alt="微信收款码" className="w-full rounded-2xl" />
+            ) : (
+              <img src="https://i.ibb.co/5gK1wr1P" alt="支付宝收款码" className="w-full rounded-2xl" />
+            )}
+            <p className="text-xs text-slate-500 text-center mt-3">付款后请截图发送给客服开通权限</p>
+            <p className="text-xs text-blue-600 text-center font-bold mt-1">微信：k-pod客服</p>
+            <button onClick={() => setShowQR(false)} className="w-full mt-4 py-2.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-xl">关闭</button>
+          </div>
+        </div>
       )}
-      <p className="text-xs text-slate-500 text-center mt-3">付款后请截图发送给客服开通权限</p>
-      <p className="text-xs text-blue-600 text-center font-bold mt-1">微信：k-pod客服</p>
-      <button onClick={() => setShowQR(false)} className="w-full mt-4 py-2.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-xl">关闭</button>
     </div>
-  </div>
-)}
+  );
+}
 
 }
 
