@@ -609,7 +609,6 @@ function SubscribePage({ isVip, onSubscribe }) {
   );
 }
 
-}
 
 // ─────────────────────────────────────────────
 // PERSONAL PAGE
