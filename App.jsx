@@ -1150,24 +1150,26 @@ export default function App() {
       <div 
         className="flex-1 flex flex-col overflow-hidden bg-slate-50"
         onClick={(e) => {
-          // 智能点读：不管你点击的是句子的哪个文本，都向上找到带有文字的元素
+          // 1. 获取用户点击的元素，并拿到它里面的文字
           const target = e.target;
-          const text = target.innerText || "";
-          
-          if (currentLesson && text.trim()) {
-            // 在当前课程的句子里，匹配和你点击的文字最接近的那一句
-            const index = currentLesson.script.findIndex(s => 
-              text.includes(s.kr) || s.kr.includes(text.trim().replace('🔊', '').trim())
-            );
+          let clickedText = (target.innerText || "").trim();
+
+          // 2. 清理文字：去掉可能存在的喇叭图标和两端空格
+          clickedText = clickedText.replace(/🔊/g, '').trim();
+
+          if (currentLesson && clickedText) {
+            // 3. 核心：模糊匹配。只要点击的文字和数据里的韩文互相包含，就认定匹配成功！
+            const index = currentLesson.script.findIndex(s => {
+              const cleanKr = s.kr.trim();
+              return clickedText.includes(cleanKr) || cleanKr.includes(clickedText);
+            });
             
             if (index !== -1) {
               const item = currentLesson.script[index];
-              // 触发播放：如果没有配具体 start/end，默认从头播到尾，配了就播单句
+              // 4. 找到句子，触发播放
               handleSentenceClick(index, item.start || 0, item.end || audioRef.current.duration);
             }
           }
-        }}
-      >
         }}
       >
                     <audio ref={audioRef} src={currentLesson ? `/${currentLesson.audioFile}` : ""} />
@@ -1200,6 +1202,6 @@ export default function App() {
         </div>
         <BottomNav page={page} setPage={setPage} />
       </div>
+  <audio ref={audioRef} src={currentLesson ? `/${currentLesson.audioFile.replace('_', '.')}` : ""} />
     </div>
-  );
-}
+    </div>
