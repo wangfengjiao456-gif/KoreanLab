@@ -2,19 +2,125 @@ import './index.css'
 import { useState, useRef, useEffect, useCallback } from "react";
 
 // ─────────────────────────────────────────────
-// DATA
+// 100篇标题数据（来自PDF）
+// ─────────────────────────────────────────────
+const LESSONS = [
+  { id: 1,  kr: "자기소개",          cn: "自我介绍" },
+  { id: 2,  kr: "내 이름",           cn: "我的名字" },
+  { id: 3,  kr: "내 나이",           cn: "我的年龄" },
+  { id: 4,  kr: "내 국적",           cn: "我的国籍" },
+  { id: 5,  kr: "내 가족",           cn: "我的家人" },
+  { id: 6,  kr: "내가 좋아하는 음식", cn: "我喜欢的食物" },
+  { id: 7,  kr: "내 취미",           cn: "我的爱好" },
+  { id: 8,  kr: "내가 싫어하는 음식", cn: "我不喜欢的食物" },
+  { id: 9,  kr: "내가 좋아하는 색",  cn: "我喜欢的颜色" },
+  { id: 10, kr: "내가 좋아하는 날씨", cn: "我喜欢的天气" },
+  { id: 11, kr: "날씨",              cn: "天气" },
+  { id: 12, kr: "오늘 기분",          cn: "今天心情" },
+  { id: 13, kr: "내 하루 일과",       cn: "我的一天" },
+  { id: 14, kr: "주말 계획",          cn: "周末计划" },
+  { id: 15, kr: "학교 생활",          cn: "学校生活" },
+  { id: 16, kr: "내가 좋아하는 과목", cn: "我最喜欢的科目" },
+  { id: 17, kr: "병원에 갔습니다",    cn: "去医院" },
+  { id: 18, kr: "저는 왕밍입니다",    cn: "我是王明" },
+  { id: 19, kr: "요일",              cn: "星期" },
+  { id: 20, kr: "월",               cn: "月" },
+  { id: 21, kr: "날씨",              cn: "天气（二）" },
+  { id: 22, kr: "봄",               cn: "春天" },
+  { id: 23, kr: "여름",              cn: "夏天" },
+  { id: 24, kr: "가을",              cn: "秋天" },
+  { id: 25, kr: "겨울",              cn: "冬天" },
+  { id: 26, kr: "좋아하지 않는 과목", cn: "我不喜欢的科目" },
+  { id: 27, kr: "교실",              cn: "教室" },
+  { id: 28, kr: "제 방",             cn: "我的房间" },
+  { id: 29, kr: "제 집",             cn: "我的家" },
+  { id: 30, kr: "공원",              cn: "公园" },
+  { id: 31, kr: "카페",              cn: "咖啡店" },
+  { id: 32, kr: "식당",              cn: "餐厅" },
+  { id: 33, kr: "주문",              cn: "餐厅点单" },
+  { id: 34, kr: "쇼핑",              cn: "购物" },
+  { id: 35, kr: "가격 묻기",          cn: "问价格" },
+  { id: 36, kr: "길 묻기",            cn: "问路" },
+  { id: 37, kr: "버스 타기",          cn: "坐公交车" },
+  { id: 38, kr: "지하철 타기",        cn: "坐地铁" },
+  { id: 39, kr: "여행을 가다",        cn: "去旅行" },
+  { id: 40, kr: "여행 계획",          cn: "旅行计划" },
+  { id: 41, kr: "가고 싶은 나라",     cn: "想去的国家" },
+  { id: 42, kr: "숫자",              cn: "数字" },
+  { id: 43, kr: "날짜",              cn: "日期" },
+  { id: 44, kr: "요일",              cn: "星期（二）" },
+  { id: 45, kr: "전화하다",           cn: "打电话" },
+  { id: 46, kr: "문자 보내다",        cn: "发短信" },
+  { id: 47, kr: "약속",              cn: "约定" },
+  { id: 48, kr: "약속 취소하기",      cn: "取消约定" },
+  { id: 49, kr: "병원 가기",          cn: "去医院" },
+  { id: 50, kr: "약국",              cn: "药店" },
+  { id: 51, kr: "감기 걸렸을 때",     cn: "感冒时" },
+  { id: 52, kr: "운동하기",           cn: "做运动" },
+  { id: 53, kr: "음악 듣기",          cn: "听音乐" },
+  { id: 54, kr: "내가 좋아하는 노래", cn: "我喜欢的歌曲" },
+  { id: 55, kr: "영화 보기",          cn: "看电影" },
+  { id: 56, kr: "내가 좋아하는 영화", cn: "我喜欢的电影" },
+  { id: 57, kr: "한국 드라마",        cn: "韩国电视剧" },
+  { id: 58, kr: "나의 취미",          cn: "我的爱好" },
+  { id: 59, kr: "내가 좋아하는 책",   cn: "我喜欢的一本书" },
+  { id: 60, kr: "공부 계획",          cn: "学习计划" },
+  { id: 61, kr: "한국어 공부 후기",   cn: "韩语学习心得" },
+  { id: 62, kr: "외국어 배우기",      cn: "学习外语" },
+  { id: 63, kr: "시험 준비",          cn: "准备考试" },
+  { id: 64, kr: "스트레스 해소",      cn: "缓解压力" },
+  { id: 65, kr: "휴식 시간",          cn: "休息时间" },
+  { id: 66, kr: "낮잠 자기",          cn: "午睡" },
+  { id: 67, kr: "일찍 일어나기",      cn: "早起" },
+  { id: 68, kr: "늦게 자기",          cn: "晚睡" },
+  { id: 69, kr: "아침 식사",          cn: "早餐" },
+  { id: 70, kr: "점심 식사",          cn: "午餐" },
+  { id: 71, kr: "저녁 식사",          cn: "晚餐" },
+  { id: 72, kr: "요리하기",           cn: "做饭" },
+  { id: 73, kr: "내가 좋아하는 요리", cn: "我喜欢的料理" },
+  { id: 74, kr: "음식 만들기",        cn: "做食物" },
+  { id: 75, kr: "배달",              cn: "外卖" },
+  { id: 76, kr: "커피 마시기",        cn: "喝咖啡" },
+  { id: 77, kr: "차 문화",            cn: "茶文化" },
+  { id: 78, kr: "커피와 차",          cn: "茶和咖啡" },
+  { id: 79, kr: "물 마시기",          cn: "喝水" },
+  { id: 80, kr: "날씨와 기분",        cn: "天气和心情" },
+  { id: 81, kr: "계절",              cn: "季节" },
+  { id: 82, kr: "봄",               cn: "春天（二）" },
+  { id: 83, kr: "여름",              cn: "夏天（二）" },
+  { id: 84, kr: "가을",              cn: "秋天（二）" },
+  { id: 85, kr: "겨울",              cn: "冬天（二）" },
+  { id: 86, kr: "눈 오는 날",        cn: "下雪天" },
+  { id: 87, kr: "비 오는 날",        cn: "下雨天" },
+  { id: 88, kr: "더운 날",           cn: "炎热的天气" },
+  { id: 89, kr: "내 꿈",             cn: "我的梦想" },
+  { id: 90, kr: "미래 계획",          cn: "未来计划" },
+  { id: 91, kr: "내가 되고 싶은 직업", cn: "理想职业" },
+  { id: 92, kr: "아르바이트",         cn: "兼职" },
+  { id: 93, kr: "회사 생활",          cn: "公司生活" },
+  { id: 94, kr: "하루 목표",          cn: "每日目标" },
+  { id: 95, kr: "좋은 습관",          cn: "好习惯" },
+  { id: 96, kr: "나쁜 습관",          cn: "坏习惯" },
+  { id: 97, kr: "나의 장점",          cn: "我的优点" },
+  { id: 98, kr: "나의 단점",          cn: "我的缺点" },
+  { id: 99, kr: "감사 인사",          cn: "感谢的话" },
+  { id: 100, kr: "마무리",            cn: "结语" },
+];
+
+// ─────────────────────────────────────────────
+// DATA（原有课程，保留兼容）
 // ─────────────────────────────────────────────
 const COURSES = [
   {
-    id: 1, level: "Level 1", levelColor: "orange", title: "首尔旅行必备地铁韩语",
+    id: 1, level: "Level 1", levelColor: "orange", title: "Level1王明的韩语之路100篇",
     duration: "12:15", listeners: "1.8k", cover: "https://images.unsplash.com/photo-1538485399081-7191377e8241?w=400&q=80",
-    tags: ["入门", "旅行"], description: "学会在首尔地铁中问路、买票、找站台的实用韩语表达。",
+    tags: ["入门", "旅行"], description: "王明的韩语之路100篇，从自我介绍到日常生活，系统学习韩语表达。",
     script: [
-      { kr: "안녕하세요, 지하철 타는 곳이 어디예요?", cn: "你好，请问地铁在哪里坐？" },
-      { kr: "2호선을 타고 싶어요.", cn: "我想乘坐2号线。" },
-      { kr: "이 역에서 몇 정거장이에요?", cn: "从这一站到那里要几站？" },
-      { kr: "환승역이 어디예요?", cn: "换乘站在哪里？" },
-      { kr: "감사합니다!", cn: "谢谢！" },
+      { kr: "안녕하세요, 저는 왕밍입니다.", cn: "你好，我是王明。" },
+      { kr: "중국에서 왔고 지금은 한국에 살고 있습니다.", cn: "我来自中国，现在住在韩国。" },
+      { kr: "저는 학생이고 한국어를 공부하고 있습니다.", cn: "我是学生，正在学习韩语。" },
+      { kr: "한국어는 아직 어렵지만 재미있습니다.", cn: "韩语现在还比较难，但很有趣。" },
+      { kr: "앞으로 한국어를 더 잘하고 싶습니다. 감사합니다!", cn: "以后我想把韩语学得更好。谢谢！" },
     ]
   },
   {
@@ -117,6 +223,9 @@ const Icon = ({ name, className = "w-5 h-5" }) => {
     settings: <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />,
     receipt: <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />,
     refresh: <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />,
+    mic: <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />,
+    volume: <path strokeLinecap="round" strokeLinejoin="round" d="M15.536 8.464a5 5 0 010 7.072M12 6v12m0 0l-3-3m3 3l3-3M9.172 16.828A4 4 0 106.343 12m2.829 4.828L6.343 12m0 0a4 4 0 015.657-5.657" />,
+    list: <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />,
   };
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -151,11 +260,13 @@ function BottomNav({ page, setPage }) {
 }
 
 // ─────────────────────────────────────────────
-// HOME PAGE
+// HOME PAGE — 包含大标题 + 100个小标题
 // ─────────────────────────────────────────────
 function HomePage({ setPage, setActiveCourse, progress }) {
   const featured = COURSES.slice(0, 3);
   const recent = COURSES.slice(3, 6);
+  const [showAll, setShowAll] = useState(false);
+  const displayedLessons = showAll ? LESSONS : LESSONS.slice(0, 20);
 
   return (
     <div className="px-5 pb-4">
@@ -184,6 +295,95 @@ function HomePage({ setPage, setActiveCourse, progress }) {
             <p className="text-[10px] text-slate-400 mt-0.5">{s.label}</p>
           </div>
         ))}
+      </div>
+
+      {/* ══════════════════════════════════════
+          Level1王明的韩语之路100篇 大标题区域
+          ══════════════════════════════════════ */}
+      <div className="mb-6">
+        {/* 大标题 */}
+        <div className="bg-gradient-to-r from-orange-500 to-orange-400 rounded-2xl p-5 mb-4 relative overflow-hidden">
+          <div className="absolute right-3 top-3 w-16 h-16 bg-white/10 rounded-full" />
+          <div className="absolute right-8 bottom-2 w-8 h-8 bg-white/10 rounded-full" />
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-white/80 text-[10px] font-bold uppercase tracking-widest">Level 1</span>
+            <span className="bg-white/20 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">100篇</span>
+          </div>
+          <h2 className="text-white text-lg font-black leading-tight">王明的韩语之路</h2>
+          <p className="text-orange-100 text-xs mt-1">从零开始，100篇系统学习韩语</p>
+          <div className="flex items-center gap-3 mt-3">
+            <div className="flex items-center gap-1 text-white/80 text-[11px]">
+              <Icon name="list" className="w-3.5 h-3.5" />
+              <span>100篇</span>
+            </div>
+            <div className="flex items-center gap-1 text-white/80 text-[11px]">
+              <Icon name="mic" className="w-3.5 h-3.5" />
+              <span>跟读模式</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 100个小标题列表 */}
+        <div className="space-y-1.5">
+          {displayedLessons.map((lesson) => (
+            <div
+              key={lesson.id}
+              className="flex items-center gap-3 bg-white rounded-xl px-4 py-3 border border-slate-100 shadow-sm hover:shadow-md hover:border-orange-200 transition cursor-pointer group"
+              onClick={() => { setActiveCourse(COURSES[0]); setPage("learn"); }}
+            >
+              {/* 编号 */}
+              <span className="text-[11px] font-black text-orange-400 w-7 flex-shrink-0 text-center">
+                {String(lesson.id).padStart(2, "0")}
+              </span>
+
+              {/* 标题 */}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-slate-800 leading-snug group-hover:text-orange-600 transition truncate">
+                  {lesson.kr}
+                </p>
+                <p className="text-[10px] text-slate-400 mt-0.5">{lesson.cn}</p>
+              </div>
+
+              {/* 跟读模式占位按钮（音频待上传）*/}
+              <button
+                onClick={e => {
+                  e.stopPropagation();
+                  // TODO: 音频准备好后在此处添加播放逻辑
+                }}
+                className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-50 border border-orange-200 flex items-center justify-center text-orange-400 opacity-50 cursor-not-allowed"
+                title="跟读音频准备中"
+              >
+                <Icon name="mic" className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* 展开/收起 */}
+        {!showAll && LESSONS.length > 20 && (
+          <button
+            onClick={() => setShowAll(true)}
+            className="w-full mt-3 py-3 border-2 border-dashed border-orange-200 rounded-xl text-orange-500 text-xs font-bold hover:bg-orange-50 transition"
+          >
+            展开全部100篇 ↓
+          </button>
+        )}
+        {showAll && (
+          <button
+            onClick={() => setShowAll(false)}
+            className="w-full mt-3 py-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-400 text-xs font-bold hover:bg-slate-50 transition"
+          >
+            收起 ↑
+          </button>
+        )}
+
+        {/* 跟读模式说明条 */}
+        <div className="mt-3 flex items-center gap-2 bg-orange-50 border border-orange-100 rounded-xl px-4 py-3">
+          <Icon name="mic" className="w-4 h-4 text-orange-400 flex-shrink-0" />
+          <p className="text-[11px] text-orange-700 leading-snug">
+            <span className="font-bold">跟读模式</span> 即将上线 · 音频上传完成后自动开启
+          </p>
+        </div>
       </div>
 
       {/* Featured */}
@@ -308,11 +508,12 @@ function CoursesPage({ setPage, setActiveCourse, progress }) {
 }
 
 // ─────────────────────────────────────────────
-// LEARN / DETAIL PAGE
+// LEARN / DETAIL PAGE（保留跟读模式结构）
 // ─────────────────────────────────────────────
 function LearnPage({ course, setPage, onComplete, progress }) {
   const [tab, setTab] = useState("script");
   const [dictMode, setDictMode] = useState(false);
+  const [followMode, setFollowMode] = useState(false); // 跟读模式
   const [revealed, setRevealed] = useState({});
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeLine, setActiveLine] = useState(0);
@@ -322,6 +523,7 @@ function LearnPage({ course, setPage, onComplete, progress }) {
   const [wordModal, setWordModal] = useState(null);
   const [playTime, setPlayTime] = useState(0);
   const timerRef = useRef(null);
+  const audioRef = useRef(null); // 跟读音频 ref（待接入）
   const done = progress[course?.id];
 
   useEffect(() => {
@@ -412,14 +614,36 @@ function LearnPage({ course, setPage, onComplete, progress }) {
       {/* Script Tab */}
       {tab === "script" && (
         <div className="flex-1 overflow-y-auto">
-          <div className="flex justify-between items-center px-4 py-2 bg-slate-50 border-b border-slate-100">
+          <div className="flex justify-between items-center px-4 py-2 bg-slate-50 border-b border-slate-100 gap-2">
+            {/* 听写模式 */}
             <button onClick={() => { setDictMode(d => !d); setRevealed({}); }}
               className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border transition ${dictMode ? "bg-orange-50 text-orange-600 border-orange-200" : "bg-white text-slate-600 border-slate-200"}`}>
               <Icon name={dictMode ? "eyeOff" : "eye"} className="w-3.5 h-3.5" />
-              {dictMode ? "听写模式 ON" : "听写模式"}
+              {dictMode ? "听写 ON" : "听写模式"}
             </button>
-            <span className="text-[10px] text-slate-400">点击单词加入生词本</span>
+
+            {/* 跟读模式（音频待上传）*/}
+            <button
+              className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border bg-white text-slate-400 border-slate-200 opacity-60 cursor-not-allowed"
+              title="跟读音频准备中，上传后即可使用"
+              onClick={() => alert("跟读音频准备中，上传完成后将自动开启跟读功能 🎤")}
+            >
+              <Icon name="mic" className="w-3.5 h-3.5" />
+              跟读模式
+            </button>
           </div>
+
+          {/* 跟读模式说明（当音频未就绪时显示）*/}
+          <div className="mx-4 mt-2 mb-1 flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2">
+            <Icon name="mic" className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
+            <p className="text-[10px] text-blue-600 leading-snug">
+              跟读音频上传后，点击每句话右侧 🎤 可跟读练习
+            </p>
+          </div>
+
+          {/* TODO: 音频元素占位，音频准备好后替换 src */}
+          {/* <audio ref={audioRef} src="YOUR_AUDIO_URL_HERE" /> */}
+
           <div className="p-3 space-y-1">
             {course.script.map((line, i) => (
               <div key={i} onClick={() => setActiveLine(i)}
@@ -443,7 +667,20 @@ function LearnPage({ course, setPage, onComplete, progress }) {
                         className="text-[10px] text-blue-500 mt-1 underline">显示译文</button>
                     )}
                   </div>
-                  <span className="text-slate-300 text-xs font-mono flex-shrink-0">{String(i + 1).padStart(2, "0")}</span>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    {/* 跟读按钮占位（音频待上传）*/}
+                    <button
+                      onClick={e => {
+                        e.stopPropagation();
+                        // TODO: 音频准备好后在此处添加单句跟读逻辑
+                      }}
+                      className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-300 cursor-not-allowed"
+                      title="跟读音频准备中"
+                    >
+                      <Icon name="mic" className="w-3 h-3" />
+                    </button>
+                    <span className="text-slate-300 text-xs font-mono">{String(i + 1).padStart(2, "0")}</span>
+                  </div>
                 </div>
               </div>
             ))}
@@ -519,14 +756,10 @@ function LearnPage({ course, setPage, onComplete, progress }) {
 // ─────────────────────────────────────────────
 // SUBSCRIBE PAGE
 // ─────────────────────────────────────────────
-
-
 function SubscribePage({ isVip, onSubscribe }) {
   const [plan, setPlan] = useState("yearly");
   const [showQR, setShowQR] = useState(false);
   const [qrType, setQrType] = useState("wechat");
-
-  const handlePay = () => { setShowQR(true); };
 
   return (
     <div className="px-5 pb-4">
@@ -574,7 +807,7 @@ function SubscribePage({ isVip, onSubscribe }) {
           ))}
         </div>
       </div>
-<button onClick={() => setShowQR(true)}
+      <button onClick={() => setShowQR(true)}
         className="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl text-sm shadow-lg hover:bg-slate-800 transition flex items-center justify-center gap-2">
         立即订阅 {plan === "yearly" ? "¥199/年" : "¥28/月"}
       </button>
@@ -594,12 +827,11 @@ function SubscribePage({ isVip, onSubscribe }) {
                 支付宝
               </button>
             </div>
-          {qrType === "wechat" ? (
-  <img src="https://i.ibb.co/KpRK5ZRS/image.jpg" alt="微信收款码" className="w-full rounded-2xl" />
-) : (
-  <img src="https://i.ibb.co/5gK1wr1P/image.jpg" alt="支付宝收款码" className="w-full rounded-2xl" />
-)}
-
+            {qrType === "wechat" ? (
+              <img src="https://i.ibb.co/KpRK5ZRS/image.jpg" alt="微信收款码" className="w-full rounded-2xl" />
+            ) : (
+              <img src="https://i.ibb.co/5gK1wr1P/image.jpg" alt="支付宝收款码" className="w-full rounded-2xl" />
+            )}
             <p className="text-xs text-slate-500 text-center mt-3">付款后请截图发送给客服开通权限</p>
             <p className="text-xs text-blue-600 text-center font-bold mt-1">微信：k-pod客服</p>
             <button onClick={() => setShowQR(false)} className="w-full mt-4 py-2.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-xl">关闭</button>
@@ -609,7 +841,6 @@ function SubscribePage({ isVip, onSubscribe }) {
     </div>
   );
 }
-
 
 // ─────────────────────────────────────────────
 // PERSONAL PAGE
@@ -754,7 +985,6 @@ export default function App() {
   const [progress, setProgress] = useState(() => load(PROGRESS_KEY, {}));
   const [vocab, setVocab] = useState(() => load(VOCAB_STORE_KEY, []));
 
-  // Sync vocab from storage when relevant
   useEffect(() => { setVocab(load(VOCAB_STORE_KEY, [])); }, [page]);
 
   const handleComplete = useCallback((courseId) => {
