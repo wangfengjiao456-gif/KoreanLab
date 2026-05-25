@@ -1,4 +1,3 @@
-cat > /mnt/user-data/outputs/App.jsx << 'ENDOFFILE'
 import './index.css'
 import { useState, useRef, useEffect, useCallback } from "react";
 
