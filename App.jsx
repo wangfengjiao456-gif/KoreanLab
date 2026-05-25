@@ -1113,6 +1113,29 @@ export default function App() {
       default:          return null;
     }
   };
+    // ──── 🎵 新增：单句跟读与高亮控制大脑 ────
+  const [activeSentenceIndex, setActiveSentenceIndex] = useState(null);
+  const audioRef = useRef(null);
+
+  // 根据你代码里的 page 变量（如 "lesson1"）自动去匹配 LESSON_DATA 里的数组索引
+  const currentLessonIndex = parseInt(page.replace("lesson", "")) - 1;
+  const currentLesson = LESSON_DATA[currentLessonIndex] || LESSON_DATA[0];
+
+  const handleSentenceClick = (index, start, end) => {
+    if (!audioRef.current || start === undefined || end === undefined) return;
+
+    setActiveSentenceIndex(index);
+    audioRef.current.currentTime = start;
+    audioRef.current.play();
+
+    const handleTimeUpdate = () => {
+      if (audioRef.current.currentTime >= end) {
+        audioRef.current.pause();
+        setActiveSentenceIndex(null);
+      }
+    };
+    audioRef.current.ontimeupdate = handleTimeUpdate;
+  };
 
   return (
     <div style={{ fontFamily: "'Noto Sans SC', sans-serif", background: "#F1F5F9", minHeight: "100vh" }}>
