@@ -1196,13 +1196,14 @@ export default function App() {
           </div>
         )}
 
-          <div className="flex-1 overflow-y-auto pb-20 pt-4">
+            <div className="flex-1 overflow-y-auto pb-20 pt-4">
         {pageContent()}
       </div>
       <BottomNav page={page} setPage={setPage} />
       <audio ref={audioRef} src={currentLesson ? "/" + currentLesson.audioFile.replace('_', '.') : ""} />
     </div>
-  );
+  </div>
+);
 };
 
 export default App;
