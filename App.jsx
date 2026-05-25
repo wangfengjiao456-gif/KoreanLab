@@ -1196,7 +1196,7 @@ export default function App() {
           </div>
         )}
 
-      <div className="flex-1 overflow-y-auto pb-20 pt-4">
+          <div className="flex-1 overflow-y-auto pb-20 pt-4">
         {pageContent()}
       </div>
       <BottomNav page={page} setPage={setPage} />
@@ -1204,3 +1204,5 @@ export default function App() {
     </div>
   );
 };
+
+export default App;
