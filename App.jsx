@@ -1201,6 +1201,7 @@ export default function App() {
         </div>
         <BottomNav page={page} setPage={setPage} />
       </div>
-        <audio ref={audioRef} src={currentLesson ? `/${currentLesson.audioFile.replace('_', '.')}` : ""} />
-    </div>
+             <BottomNav page={page} setPage={setPage} />
+      </div>
+      <audio ref={audioRef} src={currentLesson ? "/" + currentLesson.audioFile.replace('_', '.') : ""} />
     </div>
