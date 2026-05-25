@@ -1148,6 +1148,7 @@ export default function App() {
             </button>
           )}
           <div className="flex-1">
+                    <audio ref={audioRef} src={currentLesson ? `/${currentLesson.audioFile}` : ""} />
             {page === "home" ? (
               <div className="flex items-center gap-2">
                 <span className="text-lg font-black text-slate-900">TEco</span>
