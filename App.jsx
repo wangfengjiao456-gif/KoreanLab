@@ -1113,7 +1113,8 @@ export default function App() {
       default:          return null;
     }
   };
-    // ──── 🎵 新增：单句跟读与高亮控制大脑 ────
+
+  // ──── 🎵 单句跟读与高亮控制大脑 ────
   const [activeSentenceIndex, setActiveSentenceIndex] = useState(null);
   const audioRef = useRef(null);
 
@@ -1147,41 +1148,15 @@ export default function App() {
               <Icon name="back" className="w-5 h-5" />
             </button>
           )}
-      <div 
-        className="flex-1 flex flex-col overflow-hidden bg-slate-50"
-        onClick={(e) => {
-          // 1. 获取用户点击的元素，并拿到它里面的文字
-          const target = e.target;
-          let clickedText = (target.innerText || "").trim();
-
-          // 2. 清理文字：去掉可能存在的喇叭图标和两端空格
-          clickedText = clickedText.replace(/🔊/g, '').trim();
-
-          if (currentLesson && clickedText) {
-            // 3. 核心：模糊匹配。只要点击的文字和数据里的韩文互相包含，就认定匹配成功！
-            const index = currentLesson.script.findIndex(s => {
-              const cleanKr = s.kr.trim();
-              return clickedText.includes(cleanKr) || cleanKr.includes(clickedText);
-            });
-            
-            if (index !== -1) {
-              const item = currentLesson.script[index];
-              // 4. 找到句子，触发播放
-              handleSentenceClick(index, item.start || 0, item.end || audioRef.current.duration);
-            }
-          }
-        }}
-      >
-               
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-black text-slate-900">TEco</span>
-                <span className="text-lg font-black text-blue-600">Lab</span>
-                <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold">韩语播客</span>
-              </div>
-            ) : (
-              <h1 className="text-sm font-bold text-slate-900 truncate">{pageTitles[page]}</h1>
-            )}
-          </div>
+          {page === "home" ? (
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-black text-slate-900">TEco</span>
+              <span className="text-lg font-black text-blue-600">Lab</span>
+              <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold">韩语播客</span>
+            </div>
+          ) : (
+            <h1 className="text-sm font-bold text-slate-900 truncate">{pageTitles[page]}</h1>
+          )}
           {page === "home" && (
             <button onClick={() => setPage("personal")} className="w-8 h-8 rounded-full overflow-hidden border-2 border-blue-200">
               <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="avatar" className="w-full h-full bg-blue-50" />
@@ -1196,22 +1171,35 @@ export default function App() {
           </div>
         )}
 
-            <div className="flex-1 overflow-y-auto pb-20 pt-4">
-        {pageContent()}
-      </div>
-      <BottomNav page={page} setPage={setPage} />
-<audio
-            ref={audioRef}
-            src={
-              currentLesson
-                ? "/" + currentLesson.audioFile.replace("_", "·")
-                : ""
+        <div className="flex-1 overflow-y-auto pb-20 pt-4" onClick={(e) => {
+          // 点击句子播放（原逻辑保留）
+          const target = e.target;
+          let clickedText = (target.innerText || "").trim();
+          clickedText = clickedText.replace(/🔊/g, '').trim();
+          if (currentLesson && clickedText) {
+            const index = currentLesson.script.findIndex(s => {
+              const cleanKr = s.kr.trim();
+              return clickedText.includes(cleanKr) || cleanKr.includes(clickedText);
+            });
+            if (index !== -1) {
+              const item = currentLesson.script[index];
+              handleSentenceClick(index, item.start || 0, item.end || audioRef.current?.duration);
             }
-          />
+          }
+        }}>
+          {pageContent()}
         </div>
+
+        <BottomNav page={page} setPage={setPage} />
+        <audio
+          ref={audioRef}
+          src={
+            currentLesson
+              ? "/" + currentLesson.audioFile.replace("_", "·")
+              : ""
+          }
+        />
       </div>
     </div>
   );
 }
-
-export default App;
