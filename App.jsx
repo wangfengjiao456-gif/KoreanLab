@@ -882,7 +882,7 @@ useEffect(() => {
           {!followMode && (
             <div className="p-3 space-y-1">
               {lesson.script.map((line, i) => (
-                885  <div key={i} onClick={() => { setActiveLine(i); playSentence(i); }}
+               <div key={i} onClick={() => { setActiveLine(i); playSentence(i); }}
 
                   className={`p-3 rounded-xl cursor-pointer transition border-l-4
                     ${activeLine === i ? "bg-blue-50 border-blue-500" : "bg-white border-transparent hover:bg-slate-50"}`}>
