@@ -142,7 +142,7 @@ const LESSON_DATA = [
       { kr: "맑은 날에는 하늘이 파랗고 공기가 깨끗해서 기분이 좋아집니다.", cn: "晴天的时候天空很蓝，空气也很干净，心情会变好。", start: 9, end: 15 },
       { kr: "그래서 저는 이런 날에 산책을 하거나 친구를 만나는 것을 좋아합니다.", cn: "因此我喜欢在这种天气散步或者见朋友。", start: 15, end: 21 },
       { kr: "반대로 비 오는 날에는 기분이 조금 우울해지고 활동하기도 불편합니다.", cn: "相反，下雨天的时候心情会有点低落，活动也不太方便。", start: 21, end: 27 },
-      { kr: "그래서 저는 맑은 날씨를 더 좋아합니다. 감사합니다.", cn: "所以我更喜欢晴天。谢谢。", start: 27, end: 32 },
+      { kr: "그래서 저는 맑은 날씨를 더 좋아합니다. 감사합니다.", cn: "所以我更喜欢晴天. 谢谢。", start: 27, end: 32 },
     ],
     vocab: ["날씨 天气","맑다 晴朗","하늘 天空","파랗다 蓝","공기 空气","기분 心情","산책 散步","반대로 相反","비 雨","우울하다 忧郁"],
   },
@@ -565,6 +565,14 @@ function LearnPage({ lesson, setPage, onComplete, progress }) {
   const [recordedUrl, setRecordedUrl] = useState(null);
   const [userInputs, setUserInputs] = useState({});
   const [checked, setChecked] = useState({}); 
+  
+  // 自定义通知弹窗状态，替代浏览器原生 alert
+  const [toastMessage, setToastMessage] = useState(null);
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
   const done = progress[lesson?.id];
 
   // 音频定时检测，用于普通播放高亮
@@ -684,7 +692,7 @@ function LearnPage({ lesson, setPage, onComplete, progress }) {
       setIsRecording(true);
       setRecordedUrl(null);
     } catch (err) {
-      alert("请允许网页麦克风录音权限");
+      showToast("请在系统或浏览器设置中允许网页麦克风录音权限哦 🎤");
     }
   };
 
@@ -759,11 +767,13 @@ function LearnPage({ lesson, setPage, onComplete, progress }) {
     if (!noteText.trim() || !lesson) return;
     const updated = { ...notes, [lesson.id]: [...(notes[lesson.id] || []), { text: noteText, time: new Date().toLocaleString() }] };
     setNotes(updated); save(NOTES_STORE_KEY, updated); setNoteText("");
+    showToast("📝 笔记保存成功！");
   };
 
   const deleteNote = (idx) => {
     const updated = { ...notes, [lesson.id]: notes[lesson.id].filter((_, i) => i !== idx) };
     setNotes(updated); save(NOTES_STORE_KEY, updated);
+    showToast("🗑️ 笔记已删除");
   };
 
   const addVocab = (word) => {
@@ -771,10 +781,19 @@ function LearnPage({ lesson, setPage, onComplete, progress }) {
     if (vocab.find(v => v.word === cleanWord)) return;
     const updated = [...vocab, { word: cleanWord, addedAt: new Date().toLocaleDateString(), lessonId: lesson.id }];
     setVocab(updated); save(VOCAB_STORE_KEY, updated);
+    showToast(`⭐ 已将生词 "${cleanWord}" 添加到生词本！`);
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative">
+      {/* 自定义 UI Toast 提示层 */}
+      {toastMessage && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900/90 backdrop-blur text-white text-xs font-bold px-4 py-2.5 rounded-2xl shadow-xl border border-slate-700/50 flex items-center gap-2 animate-fade-in">
+          <span className="w-2 h-2 rounded-full bg-blue-500 animate-ping" />
+          {toastMessage}
+        </div>
+      )}
+
       {/* 课文主图/封面 */}
       <div className="bg-gradient-to-br from-slate-900 to-blue-950 relative px-5 pt-4 pb-5">
         <div className="flex items-start justify-between">
@@ -933,7 +952,7 @@ function LearnPage({ lesson, setPage, onComplete, progress }) {
             </div>
           )}
 
-          {/* ── 模式 B: 逐句精读 与 默写 ── */}
+          {/* ── 模式 B: 逐句精读 与 听音默写 ── */}
           {!followMode && (
             <div className="p-3 space-y-2">
               {lesson.script.map((line, i) => (
@@ -1021,7 +1040,7 @@ function LearnPage({ lesson, setPage, onComplete, progress }) {
           </div>
           
           {(notes[lesson.id] || []).length === 0 ? (
-            <p className="text-center text-slate-400 text-xs py-8">本课尚未留下笔记笔记，立刻写下你的第一条见解吧！</p>
+            <p className="text-center text-slate-400 text-xs py-8">本课尚未留下笔记，立刻写下你的第一条见解吧！</p>
           ) : (
             (notes[lesson.id] || []).map((n, i) => (
               <div key={i} className="bg-white border border-slate-100 rounded-xl p-3 shadow-sm mb-3">
@@ -1066,7 +1085,7 @@ function LearnPage({ lesson, setPage, onComplete, progress }) {
             <p className="text-xs font-black text-slate-500 mb-2 uppercase tracking-wider">我在本课收藏的单词</p>
             {vocab.filter(v => v.lessonId === lesson.id).length === 0 ? (
               <div className="text-center py-6 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-                <p className="text-[11px] text-slate-400">💡 提示: 轻轻点击上方中/韩台词中的任何单词，即可自动同步到这里哦！</p>
+                <p className="text-[11px] text-slate-400">💡 提示: 轻轻点击上方台词里的任何韩文单词，即可自动同步到生词口袋！</p>
               </div>
             ) : (
               vocab.filter(v => v.lessonId === lesson.id).map((v, i) => (
@@ -1287,7 +1306,7 @@ function PersonalPage({ setPage, isVip, progress, vocab }) {
 export default function App() {
   const [page, setPage]               = useState("home");
   const [activeLesson, setActiveLesson] = useState(null);
-  const [isVip, setIsVip]             = useState(() => load(USER_KEY, {}).isVip || true); // 默认为开启VIP模式
+  const [isVip, setIsVip]             = useState(() => load(USER_KEY, {}).isVip || true); // 默认为开启VIP模式以直接畅听所有功能
   const [progress, setProgress]       = useState(() => load(PROGRESS_KEY, {}));
   const [vocab, setVocab]             = useState(() => load(VOCAB_STORE_KEY, []));
 
