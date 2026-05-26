@@ -595,6 +595,32 @@ const handleTimeUpdate = () => {
   const index = Math.floor((currentTime / duration) * lesson.script.length);
   setActiveLine(Math.min(index, lesson.script.length - 1));
 };
+const startRecording = async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const recorder = new MediaRecorder(stream);
+    chunksRef.current = [];
+    recorder.ondataavailable = e => chunksRef.current.push(e.data);
+    recorder.onstop = () => {
+      const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+      setRecordedUrl(URL.createObjectURL(blob));
+      stream.getTracks().forEach(t => t.stop());
+    };
+    mediaRecorderRef.current = recorder;
+    recorder.start();
+    setIsRecording(true);
+    setRecordedUrl(null);
+  } catch (err) {
+    alert("请允许麦克风权限");
+  }
+};
+
+const stopRecording = () => {
+  if (mediaRecorderRef.current) {
+    mediaRecorderRef.current.stop();
+    setIsRecording(false);
+  }
+};
 
   const toggleAudio = () => {
   if (!audioRef.current) return;
@@ -604,6 +630,26 @@ const handleTimeUpdate = () => {
     audioRef.current.play().catch(err => console.warn('播放失败:', err));
   }
 };
+useEffect(() => {
+  if (!followMode || followStep !== "listen" || !audioRef.current) return;
+  const audio = audioRef.current;
+  const tryPlay = () => {
+    const { duration } = audio;
+    if (!duration || !lesson?.script?.length) return;
+    const seg = duration / lesson.script.length;
+    audio.currentTime = followLine * seg;
+    audio.play().catch(() => {});
+    audio.ontimeupdate = () => {
+      if (audio.currentTime >= (followLine + 1) * seg) {
+        audio.pause();
+        audio.ontimeupdate = null;
+      }
+    };
+  };
+  if (audio.readyState >= 1) tryPlay();
+  else audio.onloadedmetadata = tryPlay;
+  return () => { audio.pause(); audio.ontimeupdate = null; };
+}, [followLine, followStep, followMode]);
 
   const nextFollowStep = () => {
     if (followStep === "listen") {
@@ -770,13 +816,33 @@ const handleTimeUpdate = () => {
                     <p className="text-sm text-slate-500">{lesson.script[followLine].cn}</p>
                   </div>
 
-                  <button onClick={nextFollowStep}
-                    className={`w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition
-                      ${followStep === "listen" ? "bg-blue-600 text-white" : "bg-green-600 text-white"}`}>
-                    {followStep === "listen"
-                      ? <><Icon name="mic" className="w-4 h-4" />我听完了，开始跟读 →</>
-                      : <><Icon name="repeat" className="w-4 h-4" />跟读完毕 →</>}
-                  </button>
+                {followStep === "repeat" ? (
+  <div className="space-y-3">
+    <button
+      onClick={isRecording ? stopRecording : startRecording}
+      className={`w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2
+        ${isRecording ? "bg-red-500 text-white animate-pulse" : "bg-green-600 text-white"}`}>
+      <Icon name="mic" className="w-4 h-4" />
+      {isRecording ? "录音中… 点击停止" : "开始跟读录音"}
+    </button>
+    {recordedUrl && (
+      <div className="bg-slate-50 rounded-xl p-3">
+        <p className="text-xs text-slate-500 mb-2">你的录音：</p>
+        <audio src={recordedUrl} controls className="w-full h-8" />
+        <button onClick={nextFollowStep}
+          className="w-full mt-2 py-2 bg-green-600 text-white rounded-xl text-sm font-bold">
+          下一句 →
+        </button>
+      </div>
+    )}
+  </div>
+) : (
+  <button onClick={nextFollowStep}
+    className="w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 bg-blue-600 text-white">
+    <Icon name="mic" className="w-4 h-4" />我听完了，开始跟读 →
+  </button>
+)}
+
 
                   {/* 已完成的句子 */}
                   {followLine > 0 && (
