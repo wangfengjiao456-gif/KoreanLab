@@ -889,7 +889,7 @@ useEffect(() => {
 
                   className={`p-3 rounded-xl cursor-pointer transition border-l-4
                     ${activeLine === i ? "bg-blue-50 border-blue-500" : "bg-white border-transparent hover:bg-slate-50"}`}>
-                  <div className="flex items-start justify-between gap-2">
+                  <div className="flex flex-col gap->
                     <div className="flex-1">
                       <p className="text-sm font-bold text-slate-900 leading-relaxed">
                         {line.kr.split(" ").map((word, wi) => (
