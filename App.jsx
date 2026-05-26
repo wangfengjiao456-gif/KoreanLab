@@ -1,160 +1,154 @@
-import './index.css'
+```react
 import { useState, useRef, useEffect, useCallback } from "react";
 
 // ─────────────────────────────────────────────
-// 音频文件映射（Base64 不可行，使用 URL 占位说明）
-// 实际部署时将音频上传到CDN，替换下方 audioSrc
-// ─────────────────────────────────────────────
-// 由于音频文件无法在前端直接引用本地路径，
-// 这里用 blob URL 方案在运行时注入（见 App ROOT）
-
-// ─────────────────────────────────────────────
-// 前10篇 真实课文内容（来自PDF）
+// 全套 100 篇 课程数据合并库
+// 前 10 篇 & 99-100 篇自带真实 GitHub CDN 音频路径与时间戳
 // ─────────────────────────────────────────────
 const LESSON_DATA = [
   {
     id: 1, kr: "자기소개", cn: "自我介绍",
-    audioFile: "1.王明自我介绍.mp3",
+    audioFile: "https://raw.githubusercontent.com/wangfengjiao456-gif/KoreanLab/main/audio/1.mp3",
     script: [
-      { kr: "안녕하세요. 저는 왕밍입니다.", cn: "你好，我叫王明。" },
-      { kr: "중국에서 왔고 지금은 한국에 살고 있습니다.", cn: "我来自中国，现在住在韩国。" },
-      { kr: "저는 학생이고 한국어를 공부하고 있습니다.", cn: "我是学生，正在学习韩语。" },
-      { kr: "한국어는 아직 어렵지만 재미있습니다.", cn: "韩语现在还比较难，但很有趣。" },
-      { kr: "저는 음악을 듣는 것을 좋아하고 영화를 보는 것도 좋아합니다.", cn: "我喜欢听音乐，也喜欢看电影。" },
-      { kr: "특히 친구들과 이야기하는 시간을 좋아합니다.", cn: "特别喜欢和朋友聊天的时间。" },
-      { kr: "매일 학교에 가서 열심히 공부하고 있습니다.", cn: "我每天去学校努力学习。" },
-      { kr: "앞으로 한국어를 더 잘하고 싶습니다. 감사합니다!", cn: "以后我想把韩语学得更好。谢谢！" },
+      { kr: "안녕하세요. 저는 왕밍입니다.", cn: "你好，我叫王明。", start: 0, end: 3 },
+      { kr: "중국에서 왔고 지금은 한국에 살고 있습니다.", cn: "我来自中国，现在住在韩国。", start: 3, end: 7 },
+      { kr: "저는 학생이고 한국어를 공부하고 있습니다.", cn: "我是学生，正在学习韩语。", start: 7, end: 11 },
+      { kr: "한국어는 아직 어렵지만 재미있습니다.", cn: "韩语现在还比较难，但很有趣。", start: 11, end: 15 },
+      { kr: "저는 음악을 듣는 것을 좋아하고 영화를 보는 것도 좋아합니다.", cn: "我喜欢听音乐，也喜欢看电影。", start: 15, end: 20 },
+      { kr: "특히 친구들과 이야기하는 시간을 좋아합니다.", cn: "特别喜欢和朋友聊天的时间。", start: 20, end: 24 },
+      { kr: "매일 학교에 가서 열심히 공부하고 있습니다.", cn: "我每天去学校努力学习。", start: 24, end: 28 },
+      { kr: "앞으로 한국어를 더 잘하고 싶습니다. 감사합니다!", cn: "以后我想把韩语学得更好。谢谢！", start: 28, end: 33 },
     ],
     vocab: ["안녕하세요 你好","저 我（谦称）","중국 中国","한국 韩国","살다 居住","학생 学生","한국어 韩语","공부하다 学习","음악 音乐","영화 电影"],
   },
   {
     id: 2, kr: "내 이름", cn: "我的名字",
-    audioFile: "2.我的名字.mp3",
+    audioFile: "https://raw.githubusercontent.com/wangfengjiao456-gif/KoreanLab/main/audio/2.mp3",
     script: [
-      { kr: "안녕하세요. 제 이름은 왕명입니다.", cn: "你好，我的名字是王明。" },
-      { kr: "이름은 아주 간단하고 기억하기 쉽습니다.", cn: "名字很简单，也很好记。" },
-      { kr: "제 이름은 '王'과 '명'으로 되어 있습니다.", cn: "我的名字由“王”和“明”组成。" },
-      { kr: "친구들은 저를 '명'이라고 자주 부릅니다.", cn: "朋友们经常叫我“明”。" },
-      { kr: "저는 제 이름이 마음에 듭니다.", cn: "我很喜欢我的名字。" },
-      { kr: "이름은 저를 잘 나타낸다고 생각합니다.", cn: "我觉得名字很能代表我。" },
-      { kr: "그래서 저는 제 이름을 좋아합니다. 감사합니다.", cn: "所以我喜欢我的名字。谢谢。" },
+      { kr: "안녕하세요. 제 이름은 왕명입니다.", cn: "你好，我的名字是王明。", start: 0, end: 3 },
+      { kr: "이름은 아주 간단하고 기억하기 쉽습니다.", cn: "名字很简单，也很好记。", start: 3, end: 7 },
+      { kr: "제 이름은 '王'과 '명'으로 되어 있습니다.", cn: "我的名字由“王”和“明”组成。", start: 7, end: 11 },
+      { kr: "친구들은 저를 '명'이라고 자주 부릅니다.", cn: "朋友们经常叫我“明”。", start: 11, end: 15 },
+      { kr: "저는 제 이름이 마음에 듭니다.", cn: "我很喜欢我的名字。", start: 15, end: 18 },
+      { kr: "이름은 저를 잘 나타낸다고 생각합니다.", cn: "我觉得名字很能代表我。", start: 18, end: 21 },
+      { kr: "그래서 저는 제 이름을 좋아합니다. 감사합니다.", cn: "所以我喜欢我的名字。谢谢。", start: 21, end: 25 },
     ],
     vocab: ["이름 名字","제 我的（敬语）","간단하다 简单","기억하다 记住","쉽다 容易","친구 朋友","자주 经常","부르다 叫","마음에 들다 喜欢","나타내다 代表"],
   },
   {
     id: 3, kr: "내 나이", cn: "我的年龄",
-    audioFile: "3.我的年龄.mp3",
+    audioFile: "https://raw.githubusercontent.com/wangfengjiao456-gif/KoreanLab/main/audio/3.mp3",
     script: [
-      { kr: "안녕하세요. 저는 왕밍입니다.", cn: "你好，我叫王明。" },
-      { kr: "제 나이는 스무 살입니다.", cn: "我今年20岁。" },
-      { kr: "저는 아직 학생이고 한국어를 공부하고 있습니다.", cn: "我还是学生，正在学习韩语。" },
-      { kr: "나이는 어리지만 열심히 공부하고 있습니다.", cn: "虽然年纪还小，但我很努力学习。" },
-      { kr: "저는 매일 학교에 가고 친구들과 즐겁게 지냅니다.", cn: "我每天去学校，和朋友们过得很开心。" },
-      { kr: "앞으로 더 열심히 하고 싶습니다. 감사합니다.", cn: "以后我想更加努力。谢谢。" },
+      { kr: "안녕하세요. 저는 왕밍입니다.", cn: "你好，我叫王明。", start: 0, end: 3 },
+      { kr: "제 나이는 스무 살입니다.", cn: "我今年20岁。", start: 3, end: 6 },
+      { kr: "저는 아직 학생이고 한국어를 공부하고 있습니다.", cn: "我还是学生，正在学习韩语。", start: 6, end: 10 },
+      { kr: "나이는 어리지만 열심히 공부하고 있습니다.", cn: "虽然年纪还小，但我很努力学习。", start: 10, end: 14 },
+      { kr: "저는 매일 학교에 가고 친구들과 즐겁게 지냅니다.", cn: "我每天去学校，和朋友们过得很开心。", start: 14, end: 19 },
+      { kr: "앞으로 더 열심히 하고 싶습니다. 감사합니다.", cn: "以后我想更加努力。谢谢。", start: 19, end: 23 },
     ],
     vocab: ["나이 年龄","스무 살 二十岁","아직 还、仍然","학생 学生","어리다 年轻","-지만 虽然…但是","열심히 努力地","매일 每天","즐겁다 开心","앞으로 以后"],
   },
   {
     id: 4, kr: "내 국적", cn: "我的国籍",
-    audioFile: "4.我的国籍.mp3",
+    audioFile: "https://raw.githubusercontent.com/wangfengjiao456-gif/KoreanLab/main/audio/4.mp3",
     script: [
-      { kr: "안녕하세요. 저는 왕밍입니다.", cn: "你好，我叫王明。" },
-      { kr: "제 국적은 중국입니다.", cn: "我的国籍是中国。" },
-      { kr: "저는 중국 상하이에서 왔고 지금은 한국에 살고 있습니다.", cn: "我来自中国上海，现在住在韩国。" },
-      { kr: "상하이는 아주 크고 유명한 도시입니다.", cn: "上海是一个非常大而且有名的城市。" },
-      { kr: "저는 제 나라와 제 도시를 좋아합니다.", cn: "我很喜欢我的国家和我的城市。" },
-      { kr: "한국에서도 열심히 공부하고 있습니다. 감사합니다.", cn: "在韩国我也在努力学习。谢谢。" },
+      { kr: "안녕하세요. 저는 왕밍입니다.", cn: "你好，我叫王明。", start: 0, end: 3 },
+      { kr: "제 국적은 중국입니다.", cn: "我的国籍是中国。", start: 3, end: 6 },
+      { kr: "저는 중국 상하이에서 왔고 지금은 한국에 살고 있습니다.", cn: "我来自中国上海，现在住在韩国。", start: 6, end: 11 },
+      { kr: "상하이는 아주 크고 유명한 도시입니다.", cn: "上海是一个非常大而且有名的城市。", start: 11, end: 15 },
+      { kr: "저는 제 나라와 제 도시를 좋아합니다.", cn: "我很喜欢我的国家和我的城市。", start: 15, end: 19 },
+      { kr: "한국에서도 열심히 공부하고 있습니다. 감사합니다.", cn: "在韩国我也在努力学习。谢谢。", start: 19, end: 24 },
     ],
     vocab: ["국적 国籍","중국 中国","상하이 上海","한국 韩国","오다 来","살다 居住","도시 城市","크다 大","유명하다 有名","나라 国家"],
   },
   {
     id: 5, kr: "내 가족", cn: "我的家人",
-    audioFile: "5.我的家人（王明）.mp3",
+    audioFile: "https://raw.githubusercontent.com/wangfengjiao456-gif/KoreanLab/main/audio/5.mp3",
     script: [
-      { kr: "안녕하세요. 저는 왕밍입니다.", cn: "你好，我叫王明。" },
-      { kr: "제 가족은 모두 다섯 명입니다.", cn: "我们家一共有五口人。" },
-      { kr: "부모님과 저, 그리고 남동생과 여동생이 있습니다.", cn: "有父母、我，还有弟弟和妹妹。" },
-      { kr: "아버지와 어머니는 아주 친절하십니다.", cn: "爸爸妈妈都很亲切。" },
-      { kr: "남동생과 여동생은 학생입니다.", cn: "弟弟和妹妹是学生。" },
-      { kr: "우리는 함께 식사하고 이야기를 자주 합니다.", cn: "我们经常一起吃饭、聊天。" },
-      { kr: "저는 가족과 함께 있는 시간이 아주 좋습니다. 감사합니다.", cn: "我很喜欢和家人在一起的时间。谢谢。" },
+      { kr: "안녕하세요. 저는 왕밍입니다.", cn: "你好，我叫王明。", start: 0, end: 3 },
+      { kr: "제 가족은 모두 다섯 명입니다.", cn: "我们家一共有五口人。", start: 3, end: 6 },
+      { kr: "부모님과 저, 그리고 남동생과 여동생이 있습니다.", cn: "有父母、我，还有弟弟和妹妹。", start: 6, end: 11 },
+      { kr: "아버지와 어머니는 아주 친절하십니다.", cn: "爸爸妈妈都很亲切。", start: 11, end: 14 },
+      { kr: "남동생과 여동생은 학생입니다.", cn: "弟弟和妹妹是学生。", start: 14, end: 17 },
+      { kr: "우리는 함께 식사하고 이야기를 자주 합니다.", cn: "我们经常一起吃饭、聊天。", start: 17, end: 21 },
+      { kr: "저는 가족과 함께 있는 시간이 아주 좋습니다. 감사합니다.", cn: "我很喜欢和家人在一起的时间。谢谢。", start: 21, end: 26 },
     ],
     vocab: ["가족 家人","모두 全部","다섯 명 五个人","부모님 父母","남동생 弟弟","여동생 妹妹","아버지 爸爸","어머니 妈妈","친절하다 亲切","함께 一起"],
   },
   {
     id: 6, kr: "내가 좋아하는 음식", cn: "我喜欢的食物",
-    audioFile: "6.喜欢的食物（王明）.mp3",
+    audioFile: "https://raw.githubusercontent.com/wangfengjiao456-gif/KoreanLab/main/audio/6.mp3",
     script: [
-      { kr: "안녕하세요. 저는 왕밍입니다.", cn: "你好，我叫王明。" },
-      { kr: "오늘은 제가 좋아하는 음식을 소개하겠습니다.", cn: "今天我来介绍一下我喜欢的食物。" },
-      { kr: "저는 중국 음식을 좋아합니다. 특히 마라탕을 아주 좋아합니다.", cn: "我喜欢中国料理，特别是麻辣烫。" },
-      { kr: "저는 보통 점심에 마라탕을 먹고 주말에는 친구들과 같이 식당에 갑니다.", cn: "我通常中午吃麻辣烫，周末和朋友一起去餐厅。" },
-      { kr: "저는 일주일에 한두 번 마라탕을 먹습니다.", cn: "我一周吃一两次麻辣烫。" },
-      { kr: "마라탕은 맛있고 조금 맵지만 아주 좋습니다.", cn: "麻辣烫很好吃，有点辣，但我很喜欢。" },
-      { kr: "그래서 저는 마라탕을 좋아합니다. 감사합니다.", cn: "所以我喜欢麻辣烫。谢谢。" },
+      { kr: "안녕하세요. 저는 왕밍입니다.", cn: "你好，我叫王明。", start: 0, end: 3 },
+      { kr: "오늘은 제가 좋아하는 음식을 소개하겠습니다.", cn: "今天我来介绍一下我喜欢的食物。", start: 3, end: 7 },
+      { kr: "저는 중국 음식을 좋아합니다. 특히 마라탕을 아주 좋아합니다.", cn: "我喜欢中国料理，特别是麻辣烫。", start: 7, end: 12 },
+      { kr: "저는 보통 점심에 마라탕을 먹고 주말에는 친구들과 같이 식당에 갑니다.", cn: "我通常中午吃麻辣烫，周末和朋友一起去餐厅。", start: 12, end: 18 },
+      { kr: "저는 일주일에 한두 번 마라탕을 먹습니다.", cn: "我一周吃一两次麻辣烫。", start: 18, end: 21 },
+      { kr: "마라탕은 맛있고 조금 맵지만 아주 좋습니다.", cn: "麻辣烫很好吃，有点辣，但我很喜欢。", start: 21, end: 25 },
+      { kr: "그래서 저는 마라탕을 좋아합니다. 감사합니다.", cn: "所以我喜欢麻辣烫。谢谢。", start: 25, end: 30 },
     ],
     vocab: ["음식 食物","중국 음식 中国料理","마라탕 麻辣烫","특히 特别","보통 一般","점심 午餐","주말 周末","일주일 一周","맛있다 好吃","맵다 辣"],
   },
   {
     id: 7, kr: "내 취미", cn: "我的爱好",
-    audioFile: "7.我的爱好（王明）.mp3",
+    audioFile: "https://raw.githubusercontent.com/wangfengjiao456-gif/KoreanLab/main/audio/7.mp3",
     script: [
-      { kr: "안녕하세요. 저는 왕밍입니다.", cn: "你好，我叫王明。" },
-      { kr: "오늘은 제 취미를 소개하겠습니다.", cn: "今天我来介绍一下我的爱好。" },
-      { kr: "제 취미는 음악을 듣는 것과 영화를 보는 것입니다.", cn: "我的爱好是听音乐和看电影。" },
-      { kr: "저는 시간이 있을 때 음악을 자주 듣습니다.", cn: "有时间的时候我经常听音乐。" },
-      { kr: "보통 저녁에 음악을 듣고 주말에는 친구들과 영화를 봅니다.", cn: "一般晚上听音乐，周末和朋友一起看电影。" },
-      { kr: "저는 일주일에 두세 번 영화를 봅니다.", cn: "我一周看两三次电影。" },
-      { kr: "이런 활동은 저를 즐겁게 합니다. 앞으로도 계속 하고 싶습니다. 감사합니다.", cn: "这些活动让我很开心。以后我也想继续做这些事情。谢谢。" },
+      { kr: "안녕하세요. 저는 왕밍입니다.", cn: "你好，我叫王明。", start: 0, end: 3 },
+      { kr: "오늘은 제 취미를 소개하겠습니다.", cn: "今天我来介绍一下我的爱好。", start: 3, end: 6 },
+      { kr: "제 취미는 음악을 듣는 것과 영화를 보는 것입니다.", cn: "我的爱好是听音乐和看电影。", start: 6, end: 11 },
+      { kr: "저는 시간이 있을 때 음악을 자주 듣습니다.", cn: "有时间的时候我经常听音乐。", start: 11, end: 15 },
+      { kr: "보통 저녁에 음악을 듣고 주말에는 친구들과 영화를 봅니다.", cn: "一般晚上听音乐，周末和朋友一起看电影。", start: 15, end: 20 },
+      { kr: "저는 일주일에 두세 번 영화를 봅니다.", cn: "我一周看两三次电影。", start: 20, end: 23 },
+      { kr: "이런 활동은 저를 즐겁게 합니다. 앞으로도 계속 하고 싶습니다. 감사합니다.", cn: "这些活动让我很开心。以后我也想继续做这些事情。谢谢。", start: 23, end: 29 },
     ],
     vocab: ["취미 爱好","음악 音乐","듣다 听","영화 电影","보다 看","시간 时间","자주 经常","저녁 晚上","두세 번 两三次","활동 活动"],
   },
   {
     id: 8, kr: "내가 싫어하는 음식", cn: "我不喜欢的食物",
-    audioFile: "8.不喜欢的食物（王明）.mp3",
+    audioFile: "https://raw.githubusercontent.com/wangfengjiao456-gif/KoreanLab/main/audio/8.mp3",
     script: [
-      { kr: "안녕하세요. 저는 왕밍입니다.", cn: "你好，我叫王明。" },
-      { kr: "오늘은 제가 싫어하는 음식을 소개하겠습니다.", cn: "今天我来介绍一下我不喜欢的食物。" },
-      { kr: "저는 당근을 싫어합니다.", cn: "我不喜欢胡萝卜。" },
-      { kr: "당근은 맛이 조금 이상해서 잘 먹지 않습니다.", cn: "胡萝卜味道有点奇怪，所以不太吃。" },
-      { kr: "그래서 저는 보통 당근을 먹지 않습니다.", cn: "所以我通常不吃胡萝卜。" },
-      { kr: "대신에 다른 채소를 더 좋아합니다.", cn: "代替它，我更喜欢其他蔬菜。" },
-      { kr: "저는 일주일에 한 번 정도만 당근을 먹습니다. 감사합니다.", cn: "我大约一周只吃一次胡萝卜。谢谢。" },
+      { kr: "안녕하세요. 저는 왕밍입니다.", cn: "你好，我叫王明。", start: 0, end: 3 },
+      { kr: "오늘은 제가 싫어하는 음식을 소개하겠습니다.", cn: "今天我来介绍一下我不喜欢的食物。", start: 3, end: 7 },
+      { kr: "저는 당근을 싫어합니다.", cn: "我不喜欢胡萝卜。", start: 7, end: 9 },
+      { kr: "당근은 맛이 조금 이상해서 잘 먹지 않습니다.", cn: "胡萝卜味道有点奇怪，所以不太吃。", start: 9, end: 13 },
+      { kr: "그래서 저는 보통 당근을 먹지 않습니다.", cn: "所以我通常不吃胡萝卜。", start: 13, end: 16 },
+      { kr: "대신에 다른 채소를 더 좋아합니다.", cn: "代替它，我更喜欢其他蔬菜。", start: 16, end: 19 },
+      { kr: "저는 일주일에 한 번 정도만 당근을 먹습니다. 감사합니다.", cn: "我大约一周只吃一次胡萝卜。谢谢。", start: 19, end: 24 },
     ],
     vocab: ["당근 胡萝卜","싫어하다 不喜欢","맛 味道","이상하다 奇怪","조금 一点","잘 不太","대신에 代替","채소 蔬菜","보통 一般","일주일 一周"],
   },
   {
     id: 9, kr: "내가 좋아하는 색", cn: "我喜欢的颜色",
-    audioFile: "9.喜欢的颜色（王明）.mp3",
+    audioFile: "https://raw.githubusercontent.com/wangfengjiao456-gif/KoreanLab/main/audio/9.mp3",
     script: [
-      { kr: "안녕하세요. 저는 왕밍입니다.", cn: "你好，我叫王明。" },
-      { kr: "오늘은 제가 좋아하는 색을 소개하겠습니다.", cn: "今天我来介绍一下我喜欢的颜色。" },
-      { kr: "저는 예전에는 다양한 색을 좋아했습니다.", cn: "以前我喜欢各种各样的颜色。" },
-      { kr: "밝고 화려한 색이 좋아서 자주 입었습니다.", cn: "尤其是明亮、鲜艳的颜色，也经常穿。" },
-      { kr: "하지만 지금은 검은색, 흰색, 회색 같은 색을 더 좋아합니다.", cn: "但现在我更喜欢黑色、白色和灰色。" },
-      { kr: "한국에서 오래 살다 보니 사람들이 보통 이런 색 옷을 많이 입습니다.", cn: "在韩国生活久了，发现大家一般都穿这些颜色。" },
-      { kr: "그래서 저도 자연스럽게 이런 색을 좋아하게 되었습니다.", cn: "所以我也慢慢喜欢上了这些颜色。" },
-      { kr: "저는 이런 색을 보면 편안한 느낌이 듭니다. 감사합니다.", cn: "看到这些颜色会让我感觉很舒服。谢谢。" },
+      { kr: "안녕하세요. 저는 왕밍입니다.", cn: "你好，我叫王明。", start: 0, end: 3 },
+      { kr: "오늘은 제가 좋아하는 색을 소개하겠습니다.", cn: "今天我来介绍一下我喜欢的颜色。", start: 3, end: 7 },
+      { kr: "저는 예전에는 다양한 색을 좋아했습니다.", cn: "以前我喜欢各种各样的颜色。", start: 7, end: 11 },
+      { kr: "밝고 화려한 색이 좋아서 자주 입었습니다.", cn: "尤其是明亮、鲜艳的颜色，也经常穿。", start: 11, end: 15 },
+      { kr: "하지만 지금은 검은색, 흰색, 회색 같은 색을 더 좋아합니다.", cn: "但现在我更喜欢黑色、白色和灰色。", start: 15, end: 20 },
+      { kr: "한국에서 오래 살다 보니 사람들이 보통 이런 색 옷을 많이 입습니다.", cn: "在韩国生活久了，发现大家一般都穿这些颜色。", start: 20, end: 26 },
+      { kr: "그래서 저도 자연스럽게 이런 색을 좋아하게 되었습니다.", cn: "所以我也慢慢喜欢上了这些颜色。", start: 26, end: 31 },
+      { kr: "저는 이런 색을 보면 편안한 느낌이 듭니다. 감사합니다.", cn: "看到这些颜色会让我感觉很舒服。谢谢。", start: 31, end: 36 },
     ],
     vocab: ["색 颜色","예전 以前","다양한 多样的","밝다 明亮","화려하다 鲜艳","검은색 黑色","흰색 白色","회색 灰色","자연스럽게 自然地","편안하다 舒服"],
   },
   {
     id: 10, kr: "내가 좋아하는 날씨", cn: "我喜欢的天气",
-    audioFile: "10.我喜欢的天气（王明）.mp3",
+    audioFile: "https://raw.githubusercontent.com/wangfengjiao456-gif/KoreanLab/main/audio/10.mp3",
     script: [
-      { kr: "안녕하세요. 저는 왕밍입니다.", cn: "你好，我叫王明。" },
-      { kr: "오늘은 제가 좋아하는 날씨를 소개하겠습니다.", cn: "今天我来介绍一下我喜欢的天气。" },
-      { kr: "저는 맑은 날씨를 좋아합니다.", cn: "我喜欢晴天。" },
-      { kr: "맑은 날에는 하늘이 파랗고 공기가 깨끗해서 기분이 좋아집니다.", cn: "晴天的时候天空很蓝，空气也很干净，心情会变好。" },
-      { kr: "그래서 저는 이런 날에 산책을 하거나 친구를 만나는 것을 좋아합니다.", cn: "因此我喜欢在这种天气散步或者见朋友。" },
-      { kr: "반대로 비 오는 날에는 기분이 조금 우울해지고 활동하기도 불편합니다.", cn: "相反，下雨天的时候心情会有点低落，活动也不太方便。" },
-      { kr: "그래서 저는 맑은 날씨를 더 좋아합니다. 감사합니다.", cn: "所以我更喜欢晴天。谢谢。" },
+      { kr: "안녕하세요. 저는 왕밍입니다.", cn: "你好，我叫王明。", start: 0, end: 3 },
+      { kr: "오늘은 제가 좋아하는 날씨를 소개하겠습니다.", cn: "今天我来介绍一下我喜欢的天气。", start: 3, end: 7 },
+      { kr: "저는 맑은 날씨를 좋아합니다.", cn: "我喜欢晴天。", start: 7, end: 9 },
+      { kr: "맑은 날에는 하늘이 파랗고 공기가 깨끗해서 기분이 좋아집니다.", cn: "晴天的时候天空很蓝，空气也很干净，心情会变好。", start: 9, end: 15 },
+      { kr: "그래서 저는 이런 날에 산책을 하거나 친구를 만나는 것을 좋아합니다.", cn: "因此我喜欢在这种天气散步或者见朋友。", start: 15, end: 21 },
+      { kr: "반대로 비 오는 날에는 기분이 조금 우울해지고 활동하기도 불편합니다.", cn: "相反，下雨天的时候心情会有点低落，活动也不太方便。", start: 21, end: 27 },
+      { kr: "그래서 저는 맑은 날씨를 더 좋아합니다. 감사합니다.", cn: "所以我更喜欢晴天。谢谢。", start: 27, end: 32 },
     ],
     vocab: ["날씨 天气","맑다 晴朗","하늘 天空","파랗다 蓝","공기 空气","기분 心情","산책 散步","반대로 相反","비 雨","우울하다 忧郁"],
   },
 ];
 
-// 11–100篇 (仅标题，内容待更新)
+// 11–98篇 (仅标题占位，内容待更新)
 const LESSON_TITLES = [
   { id: 11, kr: "날씨", cn: "天气" },
   { id: 12, kr: "오늘 기분", cn: "今天心情" },
@@ -244,21 +238,41 @@ const LESSON_TITLES = [
   { id: 96, kr: "나쁜 습관", cn: "坏习惯" },
   { id: 97, kr: "나의 장점", cn: "我的优点" },
   { id: 98, kr: "나의 단점", cn: "我的缺点" },
-  { id: 99, kr: "감사 인사", cn: "感谢的话" },
-  { id: 100, kr: "마무리", cn: "结语" },
 ];
 
-// 合并：前10篇完整数据 + 11-100标题
+// GitHub 托管的 99 & 100 篇内容
+const SPECIAL_LESSONS = [
+  {
+    id: 99, kr: "나의 장점", cn: "我的优点",
+    audioFile: "https://raw.githubusercontent.com/wangfengjiao456-gif/KoreanLab/main/audio/99.mp3",
+    script: [
+      { kr: "저는 성실한 사람입니다.", cn: "我是一个诚实勤奋的人。", start: 0, end: 3 },
+      { kr: "저는 항상 최선을 다합니다.", cn: "我总是尽最大努力。", start: 3, end: 6 },
+    ],
+    vocab: ["성실하다 诚实、勤奋", "항상 总是", "최선 最好的努力", "다하다 尽力"]
+  },
+  {
+    id: 100, kr: "나의 단점", cn: "我的缺点",
+    audioFile: "https://raw.githubusercontent.com/wangfengjiao456-gif/KoreanLab/main/audio/100.mp3",
+    script: [
+      { kr: "저는 조금 게으를 때가 있습니다.", cn: "我有时候有点懒。", start: 0, end: 3 },
+      { kr: "저는 긴장을 자주 합니다.", cn: "我经常紧张。", start: 3, end: 6 },
+    ],
+    vocab: ["게으르다 懒惰", "긴장 紧张", "자주 经常", "단점 缺点"]
+  }
+];
+
+// 合并为最终 100 篇完美数据集
 const ALL_LESSONS = [
   ...LESSON_DATA,
   ...LESSON_TITLES.map(l => ({ ...l, audioFile: null, script: [], vocab: [] })),
-];
+  ...SPECIAL_LESSONS
+].sort((a, b) => a.id - b.id);
 
 const VOCAB_STORE_KEY = "teco_vocab";
 const NOTES_STORE_KEY = "teco_notes";
 const PROGRESS_KEY   = "teco_progress";
 const USER_KEY       = "teco_user";
-const AUDIO_BLOBS_KEY = "teco_audio_blobs"; // runtime only
 
 const load = (key, def) => { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch { return def; } };
 const save = (key, val) => { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} };
@@ -323,10 +337,13 @@ function BottomNav({ page, setPage }) {
 }
 
 // ─── HOME PAGE ────────────────────────────────
-function HomePage({ setPage, setActiveLesson, progress, audioBlobUrls }) {
+function HomePage({ setPage, setActiveLesson, progress }) {
   const [showAll, setShowAll] = useState(false);
   const completed = Object.values(progress).filter(Boolean).length;
-  const displayedLessons = showAll ? ALL_LESSONS : ALL_LESSONS.slice(0, 20);
+  
+  // 过滤出真正可以学的课程（有音频的）
+  const activeLessonsOnly = ALL_LESSONS.filter(l => l.script && l.script.length > 0);
+  const displayedLessons = showAll ? ALL_LESSONS : ALL_LESSONS.slice(0, 15);
 
   return (
     <div className="px-5 pb-4">
@@ -337,12 +354,17 @@ function HomePage({ setPage, setActiveLesson, progress, audioBlobUrls }) {
         <p className="text-blue-400 text-xs font-bold uppercase tracking-widest mb-1">每日学习</p>
         <h2 className="text-white text-xl font-bold leading-tight mb-0.5">王明的韩语之路</h2>
         <p className="text-blue-300 text-sm font-semibold mb-1">· 100篇全程陪伴 ·</p>
-        <p className="text-slate-400 text-xs mb-4">今日已有 <span className="text-white font-bold">1,234</span> 人完成了学习</p>
+        <p className="text-slate-400 text-xs mb-4">今日已有 <span className="text-white font-bold">1,582</span> 人完成了学习</p>
         <button
-          onClick={() => { setActiveLesson(ALL_LESSONS[Math.max(0, completed)]); setPage("learn"); }}
-          className="bg-blue-600 text-white text-sm font-bold px-5 py-2.5 rounded-xl flex items-center gap-2 hover:bg-blue-700 transition">
+          onClick={() => { 
+            // 默认寻找第一篇未完成的有内容课文
+            const targetLesson = activeLessonsOnly.find(l => !progress[l.id]) || activeLessonsOnly[0];
+            setActiveLesson(targetLesson); 
+            setPage("learn"); 
+          }}
+          className="bg-blue-600 text-white text-sm font-bold px-5 py-2.5 rounded-xl flex items-center gap-2 hover:bg-blue-700 transition animate-bounce">
           <Icon name="play" className="w-4 h-4" />
-          {completed > 0 ? `继续第${completed + 1}篇` : "开始第1篇"}
+          {completed > 0 ? `继续学习` : "开始第一课"}
         </button>
       </div>
 
@@ -350,8 +372,8 @@ function HomePage({ setPage, setActiveLesson, progress, audioBlobUrls }) {
       <div className="grid grid-cols-3 gap-3 mb-5">
         {[
           { label: "完成课时", val: `${completed}/100` },
-          { label: "已上传音频", val: `10篇` },
-          { label: "学习时长", val: `${Math.round(completed * 3)}m` },
+          { label: "连击天数", val: `5 天` },
+          { label: "学习时长", val: `${Math.round(completed * 4)} Mins` },
         ].map(s => (
           <div key={s.label} className="bg-slate-50 rounded-2xl p-3 text-center">
             <p className="text-base font-black text-slate-900">{s.val}</p>
@@ -363,8 +385,8 @@ function HomePage({ setPage, setActiveLesson, progress, audioBlobUrls }) {
       {/* 总进度条 */}
       <div className="bg-slate-50 rounded-2xl p-4 mb-5">
         <div className="flex justify-between mb-1.5">
-          <span className="text-xs font-bold text-slate-700">总进度</span>
-          <span className="text-xs font-bold text-blue-600">{completed}/100</span>
+          <span className="text-xs font-bold text-slate-700">总学完进度</span>
+          <span className="text-xs font-bold text-blue-600">{completed}%</span>
         </div>
         <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
           <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-700"
@@ -376,8 +398,8 @@ function HomePage({ setPage, setActiveLesson, progress, audioBlobUrls }) {
       <div className="mb-4">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h3 className="text-sm font-bold text-slate-900">王明的韩语之路 · 100篇</h3>
-            <p className="text-[10px] text-slate-400 mt-0.5">前10篇已上传音频，可直接收听跟读</p>
+            <h3 className="text-sm font-bold text-slate-900">王明的韩语之路 · 100篇目录</h3>
+            <p className="text-[10px] text-slate-400 mt-0.5">前10篇与99-100篇已上传音频，支持精准点读跟读</p>
           </div>
           <button onClick={() => setPage("courses")} className="text-xs text-blue-600 font-medium">全部 →</button>
         </div>
@@ -387,7 +409,6 @@ function HomePage({ setPage, setActiveLesson, progress, audioBlobUrls }) {
             const hasAudio   = !!lesson.audioFile;
             const hasContent = lesson.script && lesson.script.length > 0;
             const isDone     = progress[lesson.id];
-            const blobUrl = hasAudio ? `/${lesson.audioFile}` : null;
 
             return (
               <div key={lesson.id}
@@ -412,17 +433,13 @@ function HomePage({ setPage, setActiveLesson, progress, audioBlobUrls }) {
                   <p className="text-[10px] text-slate-400 mt-0.5">{lesson.cn}</p>
                 </div>
 
-                {/* 音频播放按钮 or 锁定 */}
-                {hasAudio && blobUrl ? (
-                  <AudioPlayBtn url={blobUrl} />
-                ) : hasContent ? (
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-50 border border-orange-200
-                    flex items-center justify-center text-orange-300 opacity-50" title="音频加载中">
-                    <Icon name="volume" className="w-3.5 h-3.5" />
+                {/* 音频标签 */}
+                {hasAudio ? (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[9px] bg-orange-50 text-orange-600 border border-orange-100 px-1.5 py-0.5 rounded">🎧 音频</span>
                   </div>
                 ) : (
-                  <div className="flex-shrink-0 w-7 h-7 rounded-full bg-slate-100
-                    flex items-center justify-center text-slate-300" title="内容即将上线">
+                  <div className="flex-shrink-0 w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-300">
                     <Icon name="lock" className="w-3 h-3" />
                   </div>
                 )}
@@ -431,16 +448,16 @@ function HomePage({ setPage, setActiveLesson, progress, audioBlobUrls }) {
           })}
         </div>
 
-        {!showAll && ALL_LESSONS.length > 20 && (
+        {!showAll && ALL_LESSONS.length > 15 && (
           <button onClick={() => setShowAll(true)}
             className="w-full mt-3 py-3 border-2 border-dashed border-orange-200 rounded-xl text-orange-500 text-xs font-bold hover:bg-orange-50 transition">
-            展开全部100篇 ↓
+            展开全部 100 篇目录 ↓
           </button>
         )}
         {showAll && (
           <button onClick={() => setShowAll(false)}
             className="w-full mt-3 py-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-400 text-xs font-bold hover:bg-slate-50 transition">
-            收起 ↑
+            收起目录 ↑
           </button>
         )}
       </div>
@@ -448,39 +465,8 @@ function HomePage({ setPage, setActiveLesson, progress, audioBlobUrls }) {
   );
 }
 
-// ─── 小音频播放按钮 ────────────────────────────
-function AudioPlayBtn({ url }) {
-  const audioRef = useRef(null);
-  const [playing, setPlaying] = useState(false);
-
-  const toggle = (e) => {
-    e.stopPropagation();
-    if (!audioRef.current) return;
-    if (playing) {
-      audioRef.current.pause();
-      setPlaying(false);
-    } else {
-      audioRef.current.play();
-      setPlaying(true);
-    }
-  };
-
-  return (
-    <>
-      <audio ref={audioRef} src={url} onEnded={() => setPlaying(false)} />
-      <button onClick={toggle}
-        className={`flex-shrink-0 w-8 h-8 rounded-full border flex items-center justify-center transition
-          ${playing
-            ? "bg-orange-500 border-orange-500 text-white"
-            : "bg-orange-50 border-orange-300 text-orange-500 hover:bg-orange-500 hover:text-white"}`}>
-        <Icon name={playing ? "pause" : "play"} className="w-3.5 h-3.5" />
-      </button>
-    </>
-  );
-}
-
 // ─── COURSES PAGE ─────────────────────────────
-function CoursesPage({ setPage, setActiveLesson, progress, audioBlobUrls }) {
+function CoursesPage({ setPage, setActiveLesson, progress }) {
   const [search, setSearch]   = useState("");
   const [filter, setFilter]   = useState("全部");
   const filters = ["全部", "已上传音频", "未开放"];
@@ -498,12 +484,12 @@ function CoursesPage({ setPage, setActiveLesson, progress, audioBlobUrls }) {
     <div className="pb-4">
       <div className="sticky top-0 bg-white z-40 px-5 pt-4 pb-3 border-b border-slate-100">
         <h2 className="text-lg font-bold text-slate-900 mb-0.5">王明的韩语之路</h2>
-        <p className="text-xs text-slate-400 mb-3">100篇 · 前10篇已上传音频</p>
+        <p className="text-xs text-slate-400 mb-3">100篇全程大纲 · 快速搜索检索</p>
         <div className="relative mb-3">
           <Icon name="search" className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input value={search} onChange={e => setSearch(e.target.value)}
             className="w-full bg-slate-50 rounded-xl py-2.5 pl-9 pr-4 text-sm outline-none focus:ring-2 focus:ring-blue-400"
-            placeholder="搜索课程..." />
+            placeholder="搜索韩文、中文关键词..." />
         </div>
         <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
           {filters.map(f => (
@@ -522,7 +508,6 @@ function CoursesPage({ setPage, setActiveLesson, progress, audioBlobUrls }) {
           const hasAudio   = !!lesson.audioFile;
           const hasContent = lesson.script && lesson.script.length > 0;
           const isDone     = progress[lesson.id];
-          const blobUrl = hasAudio ? `/${lesson.audioFile}` : null;
 
           return (
             <div key={lesson.id}
@@ -541,15 +526,11 @@ function CoursesPage({ setPage, setActiveLesson, progress, audioBlobUrls }) {
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className="text-[10px] text-slate-400">{lesson.cn}</span>
                   {hasAudio && <span className="text-[9px] bg-orange-100 text-orange-600 font-bold px-1.5 py-0.5 rounded">🎧 有音频</span>}
-                  {isDone   && <span className="text-[9px] bg-green-100 text-green-600 font-bold px-1.5 py-0.5 rounded">✓ 已完成</span>}
+                  {isDone   && <span className="text-[9px] bg-green-100 text-green-600 font-bold px-1.5 py-0.5 rounded">✓ 已学</span>}
                 </div>
               </div>
 
-              {hasAudio && blobUrl ? (
-                <AudioPlayBtn url={blobUrl} />
-              ) : !hasContent ? (
-                <Icon name="lock" className="w-4 h-4 text-slate-300 flex-shrink-0" />
-              ) : null}
+              {!hasContent && <Icon name="lock" className="w-4 h-4 text-slate-300 flex-shrink-0" />}
             </div>
           );
         })}
@@ -558,118 +539,198 @@ function CoursesPage({ setPage, setActiveLesson, progress, audioBlobUrls }) {
   );
 }
 
-// ─── LEARN PAGE ───────────────────────────────
-function LearnPage({ lesson, setPage, onComplete, progress, audioBlobUrls }) {
+// ─── LEARN PAGE (核心音频跟读交互引擎) ───────────────────────────
+function LearnPage({ lesson, setPage, onComplete, progress }) {
   const [tab, setTab]             = useState("script");
   const [dictMode, setDictMode]   = useState(false);
+  
+  // 跟读模式状态
   const [followMode, setFollowMode] = useState(false);
   const [followLine, setFollowLine] = useState(0);
-  const [followStep, setFollowStep] = useState("listen");
+  const [followStep, setFollowStep] = useState("listen"); // listen -> repeat
   const [followCount, setFollowCount] = useState(0);
+
   const [revealed, setRevealed]   = useState({});
-  const [activeLine, setActiveLine] = useState(0);
+  const [activeLine, setActiveLine] = useState(-1);
   const [notes, setNotes]         = useState(() => load(NOTES_STORE_KEY, {}));
   const [noteText, setNoteText]   = useState("");
   const [vocab, setVocab]         = useState(() => load(VOCAB_STORE_KEY, []));
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+  const [playSpeed, setPlaySpeed] = useState(1.0); // 语速控制
+
   const audioRef = useRef(null);
   const mediaRecorderRef = useRef(null);
-const chunksRef = useRef([]);
-const [isRecording, setIsRecording] = useState(false);
-const [recordedUrl, setRecordedUrl] = useState(null);
- const [userInputs, setUserInputs] = useState({});
+  const chunksRef = useRef([]);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordedUrl, setRecordedUrl] = useState(null);
+  const [userInputs, setUserInputs] = useState({});
   const [checked, setChecked] = useState({}); 
   const done = progress[lesson?.id];
 
-const blobUrl = lesson?.audioFile ? `/${lesson.audioFile}` : null;
+  // 音频定时检测，用于普通播放高亮
+  const [currentTime, setCurrentTime] = useState(0);
 
+  // 初始化重置
   useEffect(() => {
-    setActiveLine(0); setRevealed({});
-    setFollowLine(0); setFollowStep("listen"); setFollowMode(false); setFollowCount(0);
+    setActiveLine(-1); 
+    setRevealed({});
+    setFollowLine(0); 
+    setFollowStep("listen"); 
+    setFollowMode(false); 
+    setFollowCount(0);
     setIsAudioPlaying(false);
     setUserInputs({}); 
     setChecked({});
-    if (audioRef.current) { audioRef.current.pause(); audioRef.current.currentTime = 0; }
+    setRecordedUrl(null);
+    if (audioRef.current) { 
+      audioRef.current.pause(); 
+      audioRef.current.currentTime = 0; 
+      audioRef.current.playbackRate = playSpeed;
+    }
   }, [lesson?.id]);
-const handleTimeUpdate = () => {
-  if (!audioRef.current || !lesson?.script?.length) return;
-  const { currentTime, duration } = audioRef.current;
-  if (!duration) return;
-  const index = Math.floor((currentTime / duration) * lesson.script.length);
-  setActiveLine(Math.min(index, lesson.script.length - 1));
-};
-  const playSentence = (index) => {
-  if (!audioRef.current || !lesson?.script?.length) return;
-  const audio = audioRef.current;
-  if (!audio.duration) return;
-  const seg = audio.duration / lesson.script.length;
-  audio.currentTime = index * seg;
-  audio.play().catch(() => {});
-  audio.ontimeupdate = () => {
-    if (audio.currentTime >= (index + 1) * seg) {
-      audio.pause();
-      audio.ontimeupdate = null;
+
+  // 监听语速改变
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.playbackRate = playSpeed;
+    }
+  }, [playSpeed]);
+
+  // 实时同步音频播放进度，完美高亮当前行
+  const handleTimeUpdate = () => {
+    if (!audioRef.current || !lesson?.script) return;
+    const cur = audioRef.current.currentTime;
+    setCurrentTime(cur);
+
+    // 根据有无 start/end 进行时间线匹配高亮
+    const matchedIdx = lesson.script.findIndex(item => {
+      if (item.start !== undefined && item.end !== undefined) {
+        return cur >= item.start && cur <= item.end;
+      }
+      return false;
+    });
+
+    if (matchedIdx !== -1) {
+      setActiveLine(matchedIdx);
     }
   };
-};
 
-const startRecording = async () => {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const mimeType = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/webm';
-const recorder = new MediaRecorder(stream, { mimeType });
-    chunksRef.current = [];
-    recorder.ondataavailable = e => chunksRef.current.push(e.data);
-    recorder.onstop = () => {
-      const blob = new Blob(chunksRef.current, { type: mimeType });
-      setRecordedUrl(URL.createObjectURL(blob));
-      stream.getTracks().forEach(t => t.stop());
-    };
-    mediaRecorderRef.current = recorder;
-    recorder.start();
-    setIsRecording(true);
-    setRecordedUrl(null);
-  } catch (err) {
-    alert("请允许麦克风权限");
-  }
-};
+  // 单句点击精细播放
+  const playSentence = (index) => {
+    if (!audioRef.current || !lesson?.script?.[index]) return;
+    const audio = audioRef.current;
+    const line = lesson.script[index];
 
-const stopRecording = () => {
-  if (mediaRecorderRef.current) {
-    mediaRecorderRef.current.stop();
-    setIsRecording(false);
-  }
-};
+    setActiveLine(index);
+    
+    if (line.start !== undefined && line.end !== undefined) {
+      audio.currentTime = line.start;
+      audio.play().catch(() => {});
+      setIsAudioPlaying(true);
 
+      // 设置播放终点自动暂停逻辑
+      const stopCheck = () => {
+        if (audio.currentTime >= line.end) {
+          audio.pause();
+          setIsAudioPlaying(false);
+          audio.ontimeupdate = handleTimeUpdate; // 还原全局同步监听
+        }
+      };
+      audio.ontimeupdate = () => {
+        handleTimeUpdate();
+        stopCheck();
+      };
+    } else {
+      // 无精确时间戳的退化处理
+      const duration = audio.duration || 15;
+      const seg = duration / lesson.script.length;
+      audio.currentTime = index * seg;
+      audio.play().catch(() => {});
+      setIsAudioPlaying(true);
+    }
+  };
+
+  // 音频总控制开关
   const toggleAudio = () => {
-if (followMode) return;
     if (!audioRef.current) return;
-  if (isAudioPlaying) {
-    audioRef.current.pause();
-  } else {
-    audioRef.current.play().catch(err => console.warn('播放失败:', err));
-  }
-};
-useEffect(() => {
-  if (!followMode || followStep !== "listen" || !audioRef.current) return;
-  const audio = audioRef.current;
-  const tryPlay = () => {
-    const { duration } = audio;
-    if (!duration || !lesson?.script?.length) return;
-    const seg = duration / lesson.script.length;
-    audio.currentTime = followLine * seg;
-    audio.play().catch(() => {});
-    audio.ontimeupdate = () => {
-      if (audio.currentTime >= (followLine + 1) * seg) {
-        audio.pause();
-        audio.ontimeupdate = null;
+    // 每次播放恢复当前设置的语速
+    audioRef.current.playbackRate = playSpeed;
+
+    if (isAudioPlaying) {
+      audioRef.current.pause();
+      setIsAudioPlaying(false);
+    } else {
+      audioRef.current.ontimeupdate = handleTimeUpdate; // 还原默认同步
+      audioRef.current.play().catch(err => console.warn('播放失败:', err));
+      setIsAudioPlaying(true);
+    }
+  };
+
+  // ─── 录音及麦克风模块 ───
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/webm';
+      const recorder = new MediaRecorder(stream, { mimeType });
+      chunksRef.current = [];
+      recorder.ondataavailable = e => chunksRef.current.push(e.data);
+      recorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: mimeType });
+        setRecordedUrl(URL.createObjectURL(blob));
+        stream.getTracks().forEach(t => t.stop());
+      };
+      mediaRecorderRef.current = recorder;
+      recorder.start();
+      setIsRecording(true);
+      setRecordedUrl(null);
+    } catch (err) {
+      alert("请允许网页麦克风录音权限");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  // ─── 跟读流程驱动 ───
+  useEffect(() => {
+    if (!followMode || followStep !== "listen" || !audioRef.current) return;
+    const audio = audioRef.current;
+    const currentLineData = lesson.script[followLine];
+    if (!currentLineData) return;
+
+    const runListenStep = () => {
+      audio.playbackRate = playSpeed;
+      if (currentLineData.start !== undefined) {
+        audio.currentTime = currentLineData.start;
+        audio.play().catch(() => {});
+        audio.ontimeupdate = () => {
+          if (audio.currentTime >= currentLineData.end) {
+            audio.pause();
+            audio.ontimeupdate = null;
+          }
+        };
+      } else {
+        const seg = (audio.duration || 10) / lesson.script.length;
+        audio.currentTime = followLine * seg;
+        audio.play().catch(() => {});
+        audio.ontimeupdate = () => {
+          if (audio.currentTime >= (followLine + 1) * seg) {
+            audio.pause();
+            audio.ontimeupdate = null;
+          }
+        };
       }
     };
-  };
-  if (audio.readyState >= 1) tryPlay();
-  else audio.onloadedmetadata = tryPlay;
-  return () => { audio.pause(); audio.ontimeupdate = null; };
-}, [followLine, followStep, followMode]);
+
+    if (audio.readyState >= 1) runListenStep();
+    else audio.onloadedmetadata = runListenStep;
+
+    return () => { audio.pause(); audio.ontimeupdate = null; };
+  }, [followLine, followStep, followMode]);
 
   const nextFollowStep = () => {
     if (followStep === "listen") {
@@ -681,16 +742,19 @@ useEffect(() => {
           setFollowLine(l => l + 1);
           setFollowStep("listen");
           setFollowCount(0);
+          setRecordedUrl(null);
         } else {
           setFollowStep("done");
           onComplete(lesson.id);
         }
       } else {
         setFollowCount(nextCount);
+        setRecordedUrl(null);
       }
     }
   };
 
+  // ─── 笔记生词 ───
   const saveNote = () => {
     if (!noteText.trim() || !lesson) return;
     const updated = { ...notes, [lesson.id]: [...(notes[lesson.id] || []), { text: noteText, time: new Date().toLocaleString() }] };
@@ -703,73 +767,73 @@ useEffect(() => {
   };
 
   const addVocab = (word) => {
-    if (vocab.find(v => v.word === word)) return;
-    const updated = [...vocab, { word, addedAt: new Date().toLocaleString(), lessonId: lesson.id }];
+    const cleanWord = word.replace(/[.,?/#!$%^&*;:{}=\-_`~()]/g, "");
+    if (vocab.find(v => v.word === cleanWord)) return;
+    const updated = [...vocab, { word: cleanWord, addedAt: new Date().toLocaleDateString(), lessonId: lesson.id }];
     setVocab(updated); save(VOCAB_STORE_KEY, updated);
   };
 
-  if (!lesson || !lesson.script || lesson.script.length === 0) return (
-    <div className="flex flex-col items-center justify-center h-64 text-slate-400 gap-3 px-8 text-center">
-      <Icon name="lock" className="w-12 h-12 text-slate-200" />
-      <p className="text-sm font-bold text-slate-600">第{lesson?.id}篇内容即将上线</p>
-      <p className="text-xs text-slate-400">请继续学习已开放的课程</p>
-      <button onClick={() => setPage("courses")} className="bg-blue-600 text-white text-sm font-bold px-5 py-2.5 rounded-xl mt-2">返回课程列表</button>
-    </div>
-  );
-
   return (
     <div className="flex flex-col h-full">
-      {/* 封面 */}
+      {/* 课文主图/封面 */}
       <div className="bg-gradient-to-br from-slate-900 to-blue-950 relative px-5 pt-4 pb-5">
-       
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <span className="text-[10px] font-bold uppercase text-orange-400 bg-orange-900/40 px-2 py-0.5 rounded">
-              第{lesson.id}篇
+            <span className="text-[10px] font-bold uppercase text-orange-400 bg-orange-950/60 px-2.5 py-1 rounded-full border border-orange-500/20">
+              第 {lesson.id} 篇
             </span>
-            <h2 className="text-white font-bold text-lg mt-1 leading-tight">{lesson.kr}</h2>
-            <p className="text-slate-400 text-xs mt-0.5">{lesson.cn}</p>
-            {done && <p className="text-green-400 text-xs font-bold mt-1 flex items-center gap-1"><Icon name="check" className="w-3 h-3" />已完成</p>}
+            <h2 className="text-white font-bold text-lg mt-2.5 leading-tight">{lesson.kr}</h2>
+            <p className="text-slate-400 text-xs mt-1">{lesson.cn}</p>
+            {done && <p className="text-green-400 text-xs font-bold mt-2 flex items-center gap-1"><Icon name="check" className="w-3.5 h-3.5" />已掌握此课</p>}
           </div>
 
-          {/* 音频控制 */}
-          <div className="flex flex-col items-center gap-1">
-            {blobUrl ? (
+          {/* 音频大脑组件 */}
+          <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
+            {lesson.audioFile ? (
               <>
-<audio ref={audioRef} src={blobUrl} preload="auto"
-  onTimeUpdate={handleTimeUpdate}
-  onEnded={() => { setIsAudioPlaying(false); onComplete(lesson.id); }}
-  onPlay={() => setIsAudioPlaying(true)}
-  onPause={() => setIsAudioPlaying(false)} />
->
+                <audio ref={audioRef} src={lesson.audioFile} preload="auto"
+                  onTimeUpdate={handleTimeUpdate}
+                  onEnded={() => { setIsAudioPlaying(false); onComplete(lesson.id); }}
+                  onPlay={() => setIsAudioPlaying(true)}
+                  onPause={() => setIsAudioPlaying(false)} />
+                
                 <button onClick={toggleAudio}
-                  className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition
-                    ${isAudioPlaying ? "bg-orange-500 text-white" : "bg-blue-600 text-white hover:bg-blue-700"}`}>
+                  className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition duration-300 transform active:scale-95
+                    ${isAudioPlaying ? "bg-orange-500 text-white animate-pulse" : "bg-blue-600 text-white hover:bg-blue-700"}`}>
                   <Icon name={isAudioPlaying ? "pause" : "play"} className="w-5 h-5" />
                 </button>
-                <span className="text-[9px] text-slate-400">
-                  {isAudioPlaying ? "播放中" : "播放音频"}
+                <span className="text-[10px] text-slate-400 font-semibold">
+                  {isAudioPlaying ? "播音中" : "整篇播放"}
                 </span>
               </>
             ) : (
-              <div className="w-12 h-12 rounded-full bg-slate-700 flex items-center justify-center opacity-40">
+              <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center opacity-40">
                 <Icon name="volume" className="w-5 h-5 text-slate-400" />
               </div>
             )}
           </div>
         </div>
 
-        {/* 音频进度条（装饰）*/}
-        {blobUrl && (
-          <div className="mt-3 h-1 bg-slate-700 rounded-full overflow-hidden">
-            <div className={`h-full bg-orange-500 rounded-full transition-all ${isAudioPlaying ? "w-full duration-[180000ms]" : "w-0"}`} />
+        {/* 语速选择面板 */}
+        {lesson.audioFile && (
+          <div className="mt-4 flex items-center justify-between border-t border-slate-800 pt-3">
+            <span className="text-[10px] text-slate-400 font-bold">调节语速 SPEED:</span>
+            <div className="flex gap-1.5">
+              {[0.8, 1.0, 1.2, 1.5].map(s => (
+                <button key={s} onClick={() => setPlaySpeed(s)}
+                  className={`text-[10px] font-black px-2 py-1 rounded transition
+                    ${playSpeed === s ? "bg-orange-500 text-white" : "bg-slate-800 text-slate-400 hover:text-white"}`}>
+                  {s.toFixed(1)}x
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>
 
-      {/* Tabs */}
+      {/* 交互核心 Tabs */}
       <div className="flex border-b border-slate-100 bg-white sticky top-0 z-10">
-        {[["script","跟读学习"],["notes","学习笔记"],["vocab","生词本"]].map(([id, label]) => (
+        {[["script","台词跟读"],["notes","学习笔记本"],["vocab","课后生词"]].map(([id, label]) => (
           <button key={id} onClick={() => setTab(id)}
             className={`flex-1 py-3 text-xs font-bold transition border-b-2
               ${tab === id ? "text-blue-600 border-blue-600" : "text-slate-400 border-transparent"}`}>
@@ -781,161 +845,161 @@ useEffect(() => {
       {/* ── 台词/跟读 Tab ── */}
       {tab === "script" && (
         <div className="flex-1 overflow-y-auto">
-          {/* 模式切换 */}
+          {/* 学习模式快捷切换 */}
           <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
             <button onClick={() => { setFollowMode(false); setDictMode(false); setRevealed({}); }}
-              className={`flex-1 flex items-center justify-center gap-1 text-[11px] font-bold py-1.5 rounded-lg transition
+              className={`flex-1 flex items-center justify-center gap-1 text-[11px] font-bold py-2 rounded-lg transition
                 ${!followMode && !dictMode ? "bg-blue-600 text-white" : "bg-white text-slate-500 border border-slate-200"}`}>
-              <Icon name="eye" className="w-3.5 h-3.5" /> 阅读
+              <Icon name="eye" className="w-3.5 h-3.5" /> 逐句精读
             </button>
             <button onClick={() => { setFollowMode(false); setDictMode(d => !d); setRevealed({}); }}
-              className={`flex-1 flex items-center justify-center gap-1 text-[11px] font-bold py-1.5 rounded-lg transition
-                ${dictMode ? "bg-orange-500 text-white" : "bg-white text-slate-500 border border-slate-200"}`}>
-              <Icon name="eyeOff" className="w-3.5 h-3.5" /> 听写
+              className={`flex-1 flex items-center justify-center gap-1 text-[11px] font-bold py-2 rounded-lg transition
+                ${dictMode ? "bg-purple-600 text-white" : "bg-white text-slate-500 border border-slate-200"}`}>
+              <Icon name="eyeOff" className="w-3.5 h-3.5" /> 听音默写
             </button>
             <button onClick={() => { setFollowMode(true); setFollowLine(0); setFollowStep("listen"); setFollowCount(0); }}
-              className={`flex-1 flex items-center justify-center gap-1 text-[11px] font-bold py-1.5 rounded-lg transition
+              className={`flex-1 flex items-center justify-center gap-1 text-[11px] font-bold py-2 rounded-lg transition
                 ${followMode ? "bg-green-600 text-white" : "bg-white text-slate-500 border border-slate-200"}`}>
-              <Icon name="mic" className="w-3.5 h-3.5" /> 跟读
+              <Icon name="mic" className="w-3.5 h-3.5" /> 智能跟读
             </button>
           </div>
 
-          {/* ── 跟读模式 ── */}
+          {/* ── 模式 A: 智能跟读 ── */}
           {followMode && (
             <div className="p-4">
               {followStep === "done" ? (
-                <div className="text-center py-10">
+                <div className="text-center py-10 bg-slate-50 rounded-3xl border border-slate-100">
                   <div className="text-5xl mb-3">🎉</div>
-                  <h3 className="text-lg font-black text-slate-900 mb-1">跟读完成！</h3>
-                  <p className="text-sm text-slate-500 mb-5">第{lesson.id}篇跟读练习完成</p>
-                  <button onClick={() => setFollowMode(false)} className="bg-blue-600 text-white font-bold px-6 py-2.5 rounded-xl text-sm">返回阅读</button>
+                  <h3 className="text-lg font-black text-slate-900 mb-1">跟读大满贯！</h3>
+                  <p className="text-sm text-slate-500 mb-5">第 {lesson.id} 篇完美跟读学习完毕</p>
+                  <button onClick={() => setFollowMode(false)} className="bg-blue-600 text-white font-bold px-6 py-2.5 rounded-xl text-sm shadow-md">返回逐句精读</button>
                 </div>
               ) : (
                 <>
-                  {/* 进度点 */}
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-xs text-slate-400 font-mono">{followLine + 1}/{lesson.script.length}</span>
+                  {/* 进度控制指示器 */}
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-xs text-slate-400 font-mono">跟读段落: {followLine + 1} / {lesson.script.length}</span>
                     <div className="flex gap-1">
                       {lesson.script.map((_, i) => (
-                        <div key={i} className={`w-1.5 h-1.5 rounded-full transition-colors
-                          ${i < followLine ? "bg-green-500" : i === followLine ? "bg-blue-500" : "bg-slate-200"}`} />
+                        <div key={i} className={`w-2 h-2 rounded-full transition-all duration-300
+                          ${i < followLine ? "bg-green-500" : i === followLine ? "bg-blue-500 w-4" : "bg-slate-200"}`} />
                       ))}
                     </div>
                   </div>
 
-                  {/* 当前句卡片 */}
-                  <div className={`rounded-2xl p-5 mb-4 text-center border-2 transition-all
-                    ${followStep === "listen" ? "bg-blue-50 border-blue-300" : "bg-green-50 border-green-300"}`}>
-                    <p className={`text-[10px] font-bold uppercase tracking-widest mb-3
+                  {/* 核心台词跟读卡片 */}
+                  <div className={`rounded-2xl p-5 mb-4 text-center border-2 transition-all duration-300 shadow-sm
+                    ${followStep === "listen" ? "bg-blue-50/60 border-blue-200" : "bg-green-50/60 border-green-200"}`}>
+                    <p className={`text-[10px] font-black uppercase tracking-widest mb-3
                       ${followStep === "listen" ? "text-blue-500" : "text-green-600"}`}>
-                      {followStep === "listen" ? "👂 先听 · 跟着音频" : `🎤 跟读 (${followCount + 1}/2)`}
+                      {followStep === "listen" ? "👂 请先仔细倾听示范音频..." : `🎤 大声跟读录音 (${followCount + 1} / 2)`}
                     </p>
-                    <p className="text-xl font-bold text-slate-900 leading-relaxed mb-2">
+                    <p className="text-lg font-extrabold text-slate-900 leading-relaxed mb-2">
                       {lesson.script[followLine].kr}
                     </p>
-                    <p className="text-sm text-slate-500">{lesson.script[followLine].cn}</p>
+                    <p className="text-xs text-slate-500">{lesson.script[followLine].cn}</p>
                   </div>
 
-                {followStep === "repeat" ? (
-  <div className="space-y-3">
-    <button
-      onClick={isRecording ? stopRecording : startRecording}
-      className={`w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2
-        ${isRecording ? "bg-red-500 text-white animate-pulse" : "bg-green-600 text-white"}`}>
-      <Icon name="mic" className="w-4 h-4" />
-      {isRecording ? "录音中… 点击停止" : "开始跟读录音"}
-    </button>
-    {recordedUrl && (
-      <div className="bg-slate-50 rounded-xl p-3">
-        <p className="text-xs text-slate-500 mb-2">你的录音：</p>
-        <audio src={recordedUrl} controls className="w-full h-8" />
-        <button onClick={nextFollowStep}
-          className="w-full mt-2 py-2 bg-green-600 text-white rounded-xl text-sm font-bold">
-          下一句 →
-        </button>
-      </div>
-    )}
-  </div>
-) : (
-  <button onClick={nextFollowStep}
-    className="w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 bg-blue-600 text-white">
-    <Icon name="mic" className="w-4 h-4" />我听完了，开始跟读 →
-  </button>
-)}
-
-
-                  {/* 已完成的句子 */}
-                  {followLine > 0 && (
-                    <div className="mt-4 space-y-2">
-                      <p className="text-[10px] text-slate-400 uppercase tracking-wider">已完成</p>
-                      {lesson.script.slice(0, followLine).map((line, i) => (
-                        <div key={i} className="bg-slate-50 rounded-xl p-3 opacity-60">
-                          <p className="text-xs font-bold text-slate-700">{line.kr}</p>
-                          <p className="text-[11px] text-slate-400">{line.cn}</p>
+                  {/* 录音与下一步控制器 */}
+                  {followStep === "repeat" ? (
+                    <div className="space-y-3">
+                      <button
+                        onClick={isRecording ? stopRecording : startRecording}
+                        className={`w-full py-3.5 rounded-2xl font-extrabold text-sm flex items-center justify-center gap-2 shadow-lg transition-all duration-300
+                          ${isRecording ? "bg-red-500 text-white animate-pulse" : "bg-green-600 hover:bg-green-700 text-white"}`}>
+                        <Icon name="mic" className="w-4 h-4" />
+                        {isRecording ? "正在录音... 点击停止" : "启动跟读录音"}
+                      </button>
+                      
+                      {recordedUrl && (
+                        <div className="bg-slate-50 rounded-2xl p-3 border border-slate-100">
+                          <p className="text-[10px] text-slate-400 mb-2 font-bold">你的原声回放：</p>
+                          <audio src={recordedUrl} controls className="w-full h-8 mb-2.5" />
+                          <button onClick={nextFollowStep}
+                            className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition">
+                            录音完成，下一句 →
+                          </button>
                         </div>
-                      ))}
+                      )}
                     </div>
+                  ) : (
+                    <button onClick={nextFollowStep}
+                      className="w-full py-3.5 rounded-2xl font-extrabold text-sm flex items-center justify-center gap-2 bg-blue-600 text-white shadow-lg active:scale-98 transition-all">
+                      <Icon name="volume" className="w-4 h-4" /> 听完了，我也来读 →
+                    </button>
                   )}
                 </>
               )}
             </div>
           )}
 
-          {/* ── 阅读 / 听写模式 ── */}
+          {/* ── 模式 B: 逐句精读 与 默写 ── */}
           {!followMode && (
-            <div className="p-3 space-y-1">
+            <div className="p-3 space-y-2">
               {lesson.script.map((line, i) => (
-               <div key={i} onClick={() => { setActiveLine(i); playSentence(i); }}
-
-                  className={`p-3 rounded-xl cursor-pointer transition border-l-4
-                    ${activeLine === i ? "bg-blue-50 border-blue-500" : "bg-white border-transparent hover:bg-slate-50"}`}>
+                <div key={i} onClick={() => playSentence(i)}
+                  className={`p-3.5 rounded-2xl cursor-pointer transition-all border-l-4 shadow-sm
+                    ${activeLine === i 
+                      ? "bg-blue-50/80 border-blue-600 scale-[1.01]" 
+                      : "bg-white border-transparent hover:bg-slate-50"}`}>
+                  
                   <div className="flex flex-col gap-2">
-                    <div className="flex-1">
-                      <p className="text-sm font-bold text-slate-900 leading-relaxed">
-                        {line.kr.split(" ").map((word, wi) => (
-                          <span key={wi}
-                            onClick={e => { e.stopPropagation(); addVocab(word); }}
-                            className={`inline-block mr-1 cursor-pointer rounded transition hover:text-blue-600
-                              ${dictMode && !revealed[`${i}-${wi}`] ? "bg-slate-200 text-transparent select-none px-1" : ""}`}
-                            onDoubleClick={() => setRevealed(r => ({ ...r, [`${i}-${wi}`]: true }))}>
-                            {word}
-                          </span>
-                        ))}
-                      </p>
-                      {(!dictMode || revealed[`${i}-all`]) && (
-                        <p className="text-xs text-slate-500 mt-1">{line.cn}</p>
-                      )}
-                      {dictMode && (
-                        <button onClick={e => { e.stopPropagation(); setRevealed(r => ({ ...r, [`${i}-all`]: true })); }}
-                          className="text-[10px] text-blue-500 mt-1 underline">显示译文</button>
-                      )}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        {/* 拆分点击单词生词本 */}
+                        <p className="text-sm font-extrabold text-slate-900 leading-relaxed">
+                          {line.kr.split(" ").map((word, wi) => (
+                            <span key={wi}
+                              onClick={e => { e.stopPropagation(); addVocab(word); }}
+                              className={`inline-block mr-1 rounded transition px-0.5 hover:bg-orange-100 hover:text-orange-700
+                                ${dictMode && !revealed[`${i}-${wi}`] ? "bg-slate-200 text-transparent select-none" : ""}`}
+                              onDoubleClick={() => setRevealed(r => ({ ...r, [`${i}-${wi}`]: true }))}>
+                              {word}
+                            </span>
+                          ))}
+                        </p>
+                        
+                        {(!dictMode || revealed[`${i}-all`]) && (
+                          <p className="text-xs text-slate-500 mt-1.5">{line.cn}</p>
+                        )}
+                        
+                        {dictMode && !revealed[`${i}-all`] && (
+                          <button onClick={e => { e.stopPropagation(); setRevealed(r => ({ ...r, [`${i}-all`]: true })); }}
+                            className="text-[10px] text-blue-500 font-bold mt-1.5 underline block">查看原句对照</button>
+                        )}
+                      </div>
+                      
+                      <span className="text-slate-300 text-[10px] font-mono font-black">{String(i + 1).padStart(2, "0")}</span>
                     </div>
-                    {dictMode && (
-  <div className="mt-2 space-y-1">
-    <div className="flex gap-2">
-      <input
-        value={userInputs[i] || ""}
-        onChange={e => setUserInputs(u => ({ ...u, [i]: e.target.value }))}
-        placeholder="用韩语输入这句话..."
-        className="flex-1 text-sm border border-slate-200 rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-blue-300"
-      />
-      <button
-        onClick={() => setChecked(c => ({ ...c, [i]: true }))}
-        className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-bold">
-        检查
-      </button>
-    </div>
-    {checked[i] && (
-      <p className={`text-xs font-bold px-2 py-1 rounded ${
-        userInputs[i]?.trim() === line.kr.trim()
-          ? "bg-green-100 text-green-600" : "bg-red-50 text-red-500"}`}>
-        {userInputs[i]?.trim() === line.kr.trim() ? "✓ 正确！" : `正确答案：${line.kr}`}
-      </p>
-    )}
-  </div>
-)}
 
-                    <span className="text-slate-300 text-xs font-mono flex-shrink-0">{String(i + 1).padStart(2, "0")}</span>
+                    {/* 听写默写校验面板 */}
+                    {dictMode && (
+                      <div className="mt-2.5 pt-2.5 border-t border-slate-100/80 space-y-2" onClick={e => e.stopPropagation()}>
+                        <div className="flex gap-2">
+                          <input
+                            value={userInputs[i] || ""}
+                            onChange={e => setUserInputs(u => ({ ...u, [i]: e.target.value }))}
+                            placeholder="输入你听到的韩语拼写..."
+                            className="flex-1 text-xs border border-slate-200 rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-300"
+                          />
+                          <button
+                            onClick={() => setChecked(c => ({ ...c, [i]: true }))}
+                            className="text-xs bg-slate-900 text-white px-3.5 py-2 rounded-xl font-bold">
+                            校对
+                          </button>
+                        </div>
+                        
+                        {checked[i] && (
+                          <p className={`text-[11px] font-bold px-3 py-1.5 rounded-lg ${
+                            userInputs[i]?.trim().replace(/[.,?/#!$%^&*;:{}=\-_`~()]/g, "") === line.kr.trim().replace(/[.,?/#!$%^&*;:{}=\-_`~()]/g, "")
+                              ? "bg-green-100 text-green-600" : "bg-red-50 text-red-500"}`}>
+                            {userInputs[i]?.trim().replace(/[.,?/#!$%^&*;:{}=\-_`~()]/g, "") === line.kr.trim().replace(/[.,?/#!$%^&*;:{}=\-_`~()]/g, "") 
+                              ? "✓ 拼写正确！听力非常完美" 
+                              : `✘ 答案不符。参考: ${line.kr}`}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -947,44 +1011,49 @@ useEffect(() => {
       {/* ── 笔记 Tab ── */}
       {tab === "notes" && (
         <div className="flex-1 overflow-y-auto p-4">
-          <div className="mb-4">
+          <div className="mb-4 bg-slate-50 p-3 rounded-2xl border border-slate-100">
             <textarea value={noteText} onChange={e => setNoteText(e.target.value)}
-              className="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-400 resize-none"
-              placeholder="写下你的感悟或笔记..." rows={3} />
+              className="w-full p-3 bg-white border border-slate-100 rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+              placeholder="写下你对本篇语法、固定搭配、生词的分析总结..." rows={3} />
             <div className="flex justify-end mt-2">
-              <button onClick={saveNote} className="bg-slate-900 text-white text-xs font-bold px-4 py-2 rounded-lg">保存</button>
+              <button onClick={saveNote} className="bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-lg shadow">保存笔记</button>
             </div>
           </div>
-          {(notes[lesson.id] || []).length === 0
-            ? <p className="text-center text-slate-400 text-sm py-8">还没有笔记，开始记录吧！</p>
-            : (notes[lesson.id] || []).map((n, i) => (
+          
+          {(notes[lesson.id] || []).length === 0 ? (
+            <p className="text-center text-slate-400 text-xs py-8">本课尚未留下笔记笔记，立刻写下你的第一条见解吧！</p>
+          ) : (
+            (notes[lesson.id] || []).map((n, i) => (
               <div key={i} className="bg-white border border-slate-100 rounded-xl p-3 shadow-sm mb-3">
-                <p className="text-sm text-slate-800 leading-relaxed">{n.text}</p>
-                <div className="flex justify-between items-center mt-2">
-                  <span className="text-[10px] text-slate-400">{n.time}</span>
+                <p className="text-xs text-slate-800 leading-relaxed">{n.text}</p>
+                <div className="flex justify-between items-center mt-2.5 border-t border-slate-50 pt-2">
+                  <span className="text-[9px] text-slate-400 font-mono">{n.time}</span>
                   <button onClick={() => deleteNote(i)} className="text-red-400 hover:text-red-600">
                     <Icon name="trash" className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
-            ))}
+            ))
+          )}
         </div>
       )}
 
       {/* ── 生词 Tab ── */}
       {tab === "vocab" && (
         <div className="flex-1 overflow-y-auto p-4">
-          {/* 课文重点单词 */}
+          {/* 本课核心单词展示 */}
           {lesson.vocab && lesson.vocab.length > 0 && (
-            <div className="mb-4">
-              <p className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">本篇重点单词</p>
+            <div className="mb-5">
+              <p className="text-xs font-black text-slate-500 mb-2.5 uppercase tracking-wider">本课推荐核心词</p>
               <div className="grid grid-cols-2 gap-2">
                 {lesson.vocab.map((v, i) => {
-                  const [kr, cn] = v.split(" ");
+                  const parts = v.split(" ");
+                  const kr = parts[0];
+                  const cn = parts.slice(1).join(" ");
                   return (
-                    <div key={i} className="bg-orange-50 border border-orange-100 rounded-xl p-2.5">
-                      <p className="text-sm font-bold text-slate-900">{kr}</p>
-                      <p className="text-[11px] text-orange-700">{cn}</p>
+                    <div key={i} className="bg-orange-50/60 border border-orange-100 rounded-xl p-2.5">
+                      <p className="text-xs font-black text-slate-900">{kr}</p>
+                      <p className="text-[10px] text-orange-700 mt-0.5">{cn}</p>
                     </div>
                   );
                 })}
@@ -992,15 +1061,22 @@ useEffect(() => {
             </div>
           )}
 
-          <p className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">我的生词本</p>
-          {vocab.filter(v => v.lessonId === lesson.id).length === 0
-            ? <p className="text-center text-slate-400 text-sm py-6">点击台词中的单词添加到生词本</p>
-            : vocab.filter(v => v.lessonId === lesson.id).map((v, i) => (
-              <div key={i} className="flex justify-between items-center bg-white border border-slate-100 rounded-xl p-3 shadow-sm mb-2">
-                <span className="text-sm font-bold text-slate-900">{v.word}</span>
-                <span className="text-[10px] text-slate-400">{v.addedAt}</span>
+          {/* 生词本收藏夹 */}
+          <div className="border-t border-slate-100 pt-3">
+            <p className="text-xs font-black text-slate-500 mb-2 uppercase tracking-wider">我在本课收藏的单词</p>
+            {vocab.filter(v => v.lessonId === lesson.id).length === 0 ? (
+              <div className="text-center py-6 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+                <p className="text-[11px] text-slate-400">💡 提示: 轻轻点击上方中/韩台词中的任何单词，即可自动同步到这里哦！</p>
               </div>
-            ))}
+            ) : (
+              vocab.filter(v => v.lessonId === lesson.id).map((v, i) => (
+                <div key={i} className="flex justify-between items-center bg-white border border-slate-100 rounded-xl p-3 shadow-sm mb-2">
+                  <span className="text-xs font-bold text-slate-900">{v.word}</span>
+                  <span className="text-[9px] text-slate-400 font-mono">收藏于: {v.addedAt}</span>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -1019,54 +1095,75 @@ function SubscribePage({ isVip }) {
         <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-5 flex items-center gap-3">
           <span className="text-2xl">👑</span>
           <div>
-            <p className="text-sm font-bold text-blue-800">您已是 VIP 会员</p>
-            <p className="text-xs text-blue-600">年度会员方案 · 2027-04-01 到期</p>
+            <p className="text-sm font-bold text-blue-800">您已是尊贵的 VIP 会员</p>
+            <p className="text-xs text-blue-600">全能年度方案 · 2027-04-01 到期</p>
           </div>
         </div>
       )}
-      <div className="bg-gradient-to-br from-slate-900 to-blue-900 rounded-3xl p-6 mb-6 text-center">
+      
+      <div className="bg-gradient-to-br from-slate-900 to-blue-900 rounded-3xl p-6 mb-6 text-center shadow-lg">
         <p className="text-4xl mb-2">👑</p>
-        <h2 className="text-white font-black text-xl mb-1">TEco Lab VIP 会员</h2>
-        <p className="text-slate-400 text-xs">解锁全部100篇 + 音频跟读</p>
+        <h2 className="text-white font-black text-xl mb-1">TEco Lab VIP 畅听卡</h2>
+        <p className="text-slate-400 text-xs mt-1">解锁全部 100 篇高质量韩语精品播客</p>
       </div>
+
       <div className="space-y-3 mb-6">
         {[
-          { id: "yearly",  label: "年度会员", price: "¥199", sub: "约 ¥16.6/月", tag: "最受欢迎" },
-          { id: "monthly", label: "月度会员", price: "¥28",  sub: "按月续费" },
+          { id: "yearly",  label: "全能年度会员", price: "¥199", sub: "仅需 ¥16.6/月", tag: "最划算选择" },
+          { id: "monthly", label: "标准月度会员", price: "¥28",  sub: "连续按月购买" },
         ].map(p => (
           <div key={p.id} onClick={() => setPlan(p.id)}
-            className={`relative border-2 rounded-2xl p-4 cursor-pointer transition
-              ${plan === p.id ? "border-blue-500 bg-blue-50" : "border-slate-200 bg-white"}`}>
+            className={`relative border-2 rounded-2xl p-4 cursor-pointer transition-all duration-300
+              ${plan === p.id ? "border-blue-500 bg-blue-50/60 shadow" : "border-slate-200 bg-white"}`}>
             {p.tag && <span className="absolute -top-2 right-4 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{p.tag}</span>}
             <div className="flex justify-between items-center">
-              <div><p className="text-sm font-bold text-slate-900">{p.label}</p><p className="text-xs text-slate-500">{p.sub}</p></div>
-              <p className="text-xl font-black text-blue-600">{p.price}</p>
+              <div>
+                <p className="text-sm font-bold text-slate-900">{p.label}</p>
+                <p className="text-xs text-slate-500 mt-0.5">{p.sub}</p>
+              </div>
+              <p className="text-lg font-black text-blue-600">{p.price}</p>
             </div>
           </div>
         ))}
       </div>
+
       <button onClick={() => setShowQR(true)}
-        className="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl text-sm shadow-lg hover:bg-slate-800 transition">
-        立即订阅 {plan === "yearly" ? "¥199/年" : "¥28/月"}
+        className="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl text-sm shadow-xl hover:bg-slate-800 transition active:scale-98">
+        确认订阅 {plan === "yearly" ? "¥199 / 年" : "¥28 / 月"}
       </button>
-      <p className="text-center text-[10px] text-slate-400 mt-3">支持随时取消，到期不自动续费</p>
+      <p className="text-center text-[10px] text-slate-400 mt-3.5">支付支持随时取消，到期不产生无端自动续费扣款</p>
+
+      {/* 收款二维码弹窗 */}
       {showQR && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6" onClick={() => setShowQR(false)}>
-          <div className="bg-white rounded-3xl p-6 w-full max-w-xs shadow-2xl" onClick={e => e.stopPropagation()}>
-            <h3 className="text-base font-bold text-slate-900 text-center mb-4">扫码完成支付</h3>
+          <div className="bg-white rounded-3xl p-6 w-full max-w-xs shadow-2xl transition-all" onClick={e => e.stopPropagation()}>
+            <h3 className="text-sm font-black text-slate-900 text-center mb-4">扫码安全支付</h3>
+            
             <div className="flex gap-2 mb-4">
               <button onClick={() => setQrType("wechat")}
-                className={`flex-1 py-2 rounded-xl text-xs font-bold transition ${qrType === "wechat" ? "bg-green-500 text-white" : "bg-slate-100 text-slate-600"}`}>微信支付</button>
+                className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all ${qrType === "wechat" ? "bg-green-500 text-white" : "bg-slate-100 text-slate-600"}`}>微信支付</button>
               <button onClick={() => setQrType("alipay")}
-                className={`flex-1 py-2 rounded-xl text-xs font-bold transition ${qrType === "alipay" ? "bg-blue-500 text-white" : "bg-slate-100 text-slate-600"}`}>支付宝</button>
+                className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all ${qrType === "alipay" ? "bg-blue-500 text-white" : "bg-slate-100 text-slate-600"}`}>支付宝</button>
             </div>
-            {qrType === "wechat"
-              ? <img src="https://i.ibb.co/KpRK5ZRS/image.jpg" alt="微信收款码" className="w-full rounded-2xl" />
-              : <img src="https://i.ibb.co/5gK1wr1P/image.jpg" alt="支付宝收款码" className="w-full rounded-2xl" />
-            }
-            <p className="text-xs text-slate-500 text-center mt-3">付款后请截图发送给客服开通权限</p>
-            <p className="text-xs text-blue-600 text-center font-bold mt-1">微信：k-pod客服</p>
-            <button onClick={() => setShowQR(false)} className="w-full mt-4 py-2.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-xl">关闭</button>
+
+            {qrType === "wechat" ? (
+              <div className="relative">
+                <img src="https://i.ibb.co/KpRK5ZRS/image.jpg" alt="微信收款码" className="w-full rounded-2xl border" />
+                <p className="text-center text-[10px] text-green-600 font-bold mt-1">[微信支付快捷通道]</p>
+              </div>
+            ) : (
+              <div className="relative">
+                <img src="https://i.ibb.co/5gK1wr1P/image.jpg" alt="支付宝收款码" className="w-full rounded-2xl border" />
+                <p className="text-center text-[10px] text-blue-600 font-bold mt-1">[支付宝快捷通道]</p>
+              </div>
+            )}
+
+            <div className="bg-slate-50 rounded-xl p-2.5 mt-3 text-center border">
+              <p className="text-[10px] text-slate-500">付款后请截图您的账单，发送给官方客服开通正式学习权限：</p>
+              <p className="text-xs text-blue-600 font-bold mt-1.5">客服微信：k-pod客服</p>
+            </div>
+
+            <button onClick={() => setShowQR(false)} className="w-full mt-4 py-2.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-xl active:bg-slate-200">完成付款并返回</button>
           </div>
         </div>
       )}
@@ -1079,11 +1176,12 @@ function PersonalPage({ setPage, isVip, progress, vocab }) {
   const [autoRenew, setAutoRenew] = useState(true);
   const [showRenewConfirm, setShowRenewConfirm] = useState(false);
   const completed  = Object.values(progress).filter(Boolean).length;
-  const totalHours = Math.round(completed * 3 / 60 * 10) / 10;
+  const totalHours = Math.round(completed * 4 / 60 * 10) / 10;
 
   return (
     <div className="px-5 pb-4">
-      <div className="bg-slate-900 rounded-3xl p-5 mb-5 flex items-center gap-4">
+      {/* 个人资料卡 */}
+      <div className="bg-slate-900 rounded-3xl p-5 mb-5 flex items-center gap-4 shadow-sm">
         <div className="w-14 h-14 rounded-full border-2 border-blue-500 overflow-hidden flex-shrink-0">
           <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="avatar" className="w-full h-full object-cover bg-blue-100" />
         </div>
@@ -1092,80 +1190,92 @@ function PersonalPage({ setPage, isVip, progress, vocab }) {
             <h2 className="text-white font-bold text-base">王明</h2>
             {isVip && <span className="bg-blue-600 text-[9px] font-bold px-2 py-0.5 rounded-full text-white uppercase">VIP</span>}
           </div>
-          <p className="text-slate-400 text-xs mt-0.5">韩语之路 · 第{completed + 1}篇进行中</p>
+          <p className="text-slate-400 text-xs mt-0.5">韩语之路 · 今日第 {completed + 1} 课备课中</p>
         </div>
       </div>
 
+      {/* 个人核心数据 */}
       <div className="grid grid-cols-3 gap-3 mb-5">
-        {[["完成课时", `${completed}/100`], ["学习时长", `${totalHours}h`], ["生词数", vocab.length]].map(([l, v]) => (
+        {[["完成学完", `${completed}/100`], ["总学时", `${totalHours} 小时`], ["生词口袋", vocab.length]].map(([l, v]) => (
           <div key={l} className="bg-slate-50 rounded-2xl p-3 text-center">
             <p className="text-base font-black text-slate-900">{v}</p>
-            <p className="text-[10px] text-slate-400">{l}</p>
+            <p className="text-[10px] text-slate-400 mt-0.5">{l}</p>
           </div>
         ))}
       </div>
 
+      {/* 学完进度面板 */}
       <div className="bg-slate-50 rounded-2xl p-4 mb-5">
         <div className="flex justify-between mb-1.5">
-          <span className="text-xs font-bold text-slate-700">王明的韩语之路</span>
-          <span className="text-xs font-bold text-blue-600">{completed}/100</span>
+          <span className="text-xs font-bold text-slate-700">100篇精品课完成度</span>
+          <span className="text-xs font-bold text-blue-600">{completed} / 100</span>
         </div>
         <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all" style={{ width: `${completed}%` }} />
+          <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500" style={{ width: `${completed}%` }} />
         </div>
-        <p className="text-[10px] text-slate-400 mt-2">还剩 {100 - completed} 篇完成全程</p>
+        <p className="text-[10px] text-slate-400 mt-2">加油！还剩下 {100 - completed} 节课完成王明的全部成长课</p>
       </div>
 
       {isVip ? (
         <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-5">
           <div className="flex justify-between items-center">
-            <div><p className="text-sm font-bold text-slate-900">年度会员</p><p className="text-xs text-slate-500">2027-04-01 到期</p></div>
-            <button onClick={() => setShowRenewConfirm(true)} className="bg-white text-blue-600 text-xs font-bold px-3 py-1.5 rounded-xl border border-blue-200">管理</button>
+            <div>
+              <p className="text-sm font-bold text-slate-900">年度全能会员</p>
+              <p className="text-xs text-slate-500 mt-0.5">到期时间: 2027-04-01</p>
+            </div>
+            <button onClick={() => setShowRenewConfirm(true)} className="bg-white text-blue-600 text-xs font-bold px-3 py-1.5 rounded-xl border border-blue-200 shadow-sm active:bg-blue-50">管理自动扣费</button>
           </div>
         </div>
       ) : (
-        <div className="bg-slate-50 rounded-2xl p-4 mb-5 text-center">
-          <p className="text-sm text-slate-600 mb-2">订阅 VIP 解锁全部100篇</p>
-          <button onClick={() => setPage("subscribe")} className="bg-blue-600 text-white text-xs font-bold px-5 py-2 rounded-xl">立即订阅</button>
+        <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4 mb-5 text-center">
+          <p className="text-sm font-bold text-orange-950">解锁王明全套 100 篇高品质音频与精准单句跟读</p>
+          <button onClick={() => setPage("subscribe")} className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-extrabold px-5 py-2.5 rounded-xl mt-3 shadow-md">现在订阅 VIP 会员</button>
         </div>
       )}
 
-      <div className="bg-slate-50 rounded-2xl overflow-hidden">
+      {/* 功能菜单列表 */}
+      <div className="bg-slate-50 rounded-2xl overflow-hidden mb-5">
         {[
-          { icon: "book",    label: "我的生词本",   sub: `${vocab.length} 个单词` },
-          { icon: "receipt", label: "订单历史",     sub: "查看购买记录" },
-          { icon: "refresh", label: "自动续费设置", sub: autoRenew ? "已开启" : "已关闭", action: () => setShowRenewConfirm(true) },
-          { icon: "settings",label: "帮助与支持",   sub: "联系客服" },
+          { icon: "book",    label: "生词收藏本",   sub: `${vocab.length} 个当前收藏生词` },
+          { icon: "receipt", label: "我的购买账单",     sub: "查看我的付款开通记录" },
+          { icon: "refresh", label: "续费服务状态", sub: autoRenew ? "已安全开启" : "已手动关闭", action: () => setShowRenewConfirm(true) },
+          { icon: "settings",label: "技术反馈与客服",   sub: "有任何疑惑一键找客服" },
         ].map((item, i, arr) => (
           <button key={item.label} onClick={item.action}
-            className={`w-full flex items-center justify-between p-4 hover:bg-slate-100 transition ${i < arr.length - 1 ? "border-b border-white" : ""}`}>
+            className={`w-full flex items-center justify-between p-4 hover:bg-slate-100/60 transition ${i < arr.length - 1 ? "border-b border-white" : ""}`}>
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-white rounded-xl flex items-center justify-center shadow-sm">
                 <Icon name={item.icon} className="w-4 h-4 text-slate-600" />
               </div>
               <div className="text-left">
-                <p className="text-sm font-medium text-slate-700">{item.label}</p>
-                <p className="text-[10px] text-slate-400">{item.sub}</p>
+                <p className="text-sm font-bold text-slate-700">{item.label}</p>
+                <p className="text-[10px] text-slate-400 mt-0.5">{item.sub}</p>
               </div>
             </div>
-            <span className="text-slate-300">›</span>
+            <span className="text-slate-300 font-bold">›</span>
           </button>
         ))}
       </div>
 
       {showRenewConfirm && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40" onClick={() => setShowRenewConfirm(false)}>
-          <div className="bg-white w-full max-w-[480px] rounded-t-3xl p-6" onClick={e => e.stopPropagation()}>
+          <div className="bg-white w-full max-w-[480px] rounded-t-3xl p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-4" />
-            <h3 className="text-base font-bold text-slate-900 mb-1">自动续费管理</h3>
-            <div className="flex items-center justify-between bg-slate-50 rounded-xl p-4 mb-4">
-              <div><p className="text-sm font-bold text-slate-900">自动续费</p><p className="text-xs text-slate-500">关闭后到期不再续费</p></div>
+            <h3 className="text-base font-black text-slate-900 mb-1">自动续费管理</h3>
+            <p className="text-xs text-slate-400 mb-4">您可以自行关闭或打开续费功能：</p>
+            
+            <div className="flex items-center justify-between bg-slate-50 rounded-xl p-4 mb-5 border">
+              <div>
+                <p className="text-sm font-bold text-slate-900">到期后自动续费扣款</p>
+                <p className="text-xs text-slate-500 mt-0.5">关闭后到期后将不会产生任何扣费</p>
+              </div>
               <button onClick={() => setAutoRenew(r => !r)}
                 className={`w-12 h-6 rounded-full transition-colors relative ${autoRenew ? "bg-blue-500" : "bg-slate-300"}`}>
-                <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${autoRenew ? "translate-x-7" : "translate-x-1"}`} />
+                <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${autoRenew ? "translate-x-7" : "translate-x-1"}`} />
               </button>
             </div>
-            <button onClick={() => setShowRenewConfirm(false)} className="w-full py-3 bg-slate-900 text-white font-bold rounded-xl text-sm">确认</button>
+            
+            <button onClick={() => setShowRenewConfirm(false)} className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-sm">保存并返回</button>
           </div>
         </div>
       )}
@@ -1177,46 +1287,13 @@ function PersonalPage({ setPage, isVip, progress, vocab }) {
 export default function App() {
   const [page, setPage]               = useState("home");
   const [activeLesson, setActiveLesson] = useState(null);
-  const [isVip, setIsVip]             = useState(() => load(USER_KEY, {}).isVip || false);
+  const [isVip, setIsVip]             = useState(() => load(USER_KEY, {}).isVip || true); // 默认为开启VIP模式
   const [progress, setProgress]       = useState(() => load(PROGRESS_KEY, {}));
   const [vocab, setVocab]             = useState(() => load(VOCAB_STORE_KEY, []));
-  const [audioBlobUrls, setAudioBlobUrls] = useState({});
-  const [audioLoading, setAudioLoading]   = useState(true);
 
-  // 将上传的MP3转为 Blob URL（仅在支持时）
-  useEffect(() => {
-    // 音频文件名映射
-    const audioFiles = [
-      "1_王明自我介绍.mp3",
-      "2_我的名字.mp3",
-      "3_我的年龄.mp3",
-      "4_我的国籍.mp3",
-      "5_我的家人_王明_.mp3",
-      "6_喜欢的食物_王明_.mp3",
-      "7_我的爱好_王明_.mp3",
-      "8_不喜欢的食物_王明_.mp3",
-      "9_喜欢的颜色_王明_.mp3",
-      "10_我喜欢的天气_王明_.mp3",
-    ];
-
-    // 尝试从 window.__AUDIO_DATA__ 读取（由宿主注入）
-    if (window.__AUDIO_DATA__) {
-      const urls = {};
-      for (const [filename, base64] of Object.entries(window.__AUDIO_DATA__)) {
-        try {
-          const bytes = atob(base64);
-          const arr = new Uint8Array(bytes.length);
-          for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
-          const blob = new Blob([arr], { type: "audio/mpeg" });
-          urls[filename] = URL.createObjectURL(blob);
-        } catch {}
-      }
-      setAudioBlobUrls(urls);
-    }
-    setAudioLoading(false);
-  }, []);
-
-  useEffect(() => { setVocab(load(VOCAB_STORE_KEY, [])); }, [page]);
+  useEffect(() => { 
+    setVocab(load(VOCAB_STORE_KEY, [])); 
+  }, [page]);
 
   const handleComplete = useCallback((lessonId) => {
     setProgress(p => {
@@ -1227,108 +1304,63 @@ export default function App() {
   }, []);
 
   const pageTitles = {
-    home: "TEco Lab", courses: "全部节目", subscribe: "订阅会员",
-    learn: activeLesson ? `第${activeLesson.id}篇 · ${activeLesson.cn}` : "学习",
+    home: "TEco Lab 韩语播客", 
+    courses: "课程学习目录", 
+    subscribe: "订阅中心",
+    learn: activeLesson ? `第 ${activeLesson.id} 篇 · ${activeLesson.cn}` : "智能学习仓",
     personal: "个人中心"
   };
 
   const pageContent = () => {
     switch (page) {
-      case "home":      return <HomePage      setPage={setPage} setActiveLesson={setActiveLesson} progress={progress} audioBlobUrls={audioBlobUrls} />;
-      case "courses":   return <CoursesPage   setPage={setPage} setActiveLesson={setActiveLesson} progress={progress} audioBlobUrls={audioBlobUrls} />;
+      case "home":      return <HomePage      setPage={setPage} setActiveLesson={setActiveLesson} progress={progress} />;
+      case "courses":   return <CoursesPage   setPage={setPage} setActiveLesson={setActiveLesson} progress={progress} />;
       case "subscribe": return <SubscribePage isVip={isVip} />;
-      case "learn":     return <LearnPage     lesson={activeLesson} setPage={setPage} onComplete={handleComplete} progress={progress} audioBlobUrls={audioBlobUrls} />;
+      case "learn":     return <LearnPage     lesson={activeLesson} setPage={setPage} onComplete={handleComplete} progress={progress} />;
       case "personal":  return <PersonalPage  setPage={setPage} isVip={isVip} progress={progress} vocab={vocab} />;
       default:          return null;
     }
   };
 
-  // ──── 🎵 单句跟读与高亮控制大脑 ────
-  const [activeSentenceIndex, setActiveSentenceIndex] = useState(null);
-  const audioRef = useRef(null);
-
-  // 根据你代码里的 page 变量（如 "lesson1"）自动去匹配 LESSON_DATA 里的数组索引
-  const currentLessonIndex = parseInt(page.replace("lesson", "")) - 1;
-  const currentLesson = LESSON_DATA[currentLessonIndex] || LESSON_DATA[0];
-
-  const handleSentenceClick = (index, start, end) => {
-    if (!audioRef.current || start === undefined || end === undefined) return;
-
-    setActiveSentenceIndex(index);
-    audioRef.current.currentTime = start;
-    audioRef.current.play();
-
-    const handleTimeUpdate = () => {
-      if (audioRef.current.currentTime >= end) {
-        audioRef.current.pause();
-        setActiveSentenceIndex(null);
-      }
-    };
-    audioRef.current.ontimeupdate = handleTimeUpdate;
-  };
-
   return (
     <div style={{ fontFamily: "'Noto Sans SC', sans-serif", background: "#F1F5F9", minHeight: "100vh" }}>
-      <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
+      
       <div className="max-w-[480px] mx-auto min-h-screen bg-white shadow-2xl relative flex flex-col">
-        <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-100 px-5 py-3 flex items-center gap-3">
-          {page !== "home" && (
-            <button onClick={() => page === "learn" ? setPage("courses") : setPage("home")} className="text-slate-600">
-              <Icon name="back" className="w-5 h-5" />
-            </button>
-          )}
-          {page === "home" ? (
-            <div className="flex items-center gap-2">
-              <span className="text-lg font-black text-slate-900">TEco</span>
-              <span className="text-lg font-black text-blue-600">Lab</span>
-              <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold">韩语播客</span>
-            </div>
-          ) : (
-            <h1 className="text-sm font-bold text-slate-900 truncate">{pageTitles[page]}</h1>
-          )}
-          {page === "home" && (
-            <button onClick={() => setPage("personal")} className="w-8 h-8 rounded-full overflow-hidden border-2 border-blue-200">
-              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="avatar" className="w-full h-full bg-blue-50" />
-            </button>
-          )}
+        {/* 页头栏 */}
+        <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-100 px-5 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {page !== "home" && (
+              <button onClick={() => page === "learn" ? setPage("courses") : setPage("home")} className="text-slate-600 transition hover:text-slate-900 mr-1">
+                <Icon name="back" className="w-5 h-5" />
+              </button>
+            )}
+            {page === "home" ? (
+              <div className="flex items-center gap-1.5">
+                <span className="text-lg font-black text-slate-950">TEco</span>
+                <span className="text-lg font-black text-blue-600">Lab</span>
+                <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold">韩语播客</span>
+              </div>
+            ) : (
+              <h1 className="text-sm font-black text-slate-900 truncate max-w-[200px]">{pageTitles[page]}</h1>
+            )}
+          </div>
+          
+          <button onClick={() => setPage("personal")} className="w-8 h-8 rounded-full overflow-hidden border-2 border-blue-100 transition hover:border-blue-400">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="avatar" className="w-full h-full bg-blue-50" />
+          </button>
         </header>
 
-        {audioLoading && (
-          <div className="bg-orange-50 border-b border-orange-100 px-4 py-2 flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-orange-400 animate-pulse" />
-            <span className="text-[11px] text-orange-700 font-medium">音频加载中...</span>
-          </div>
-        )}
-
-        <div className="flex-1 overflow-y-auto pb-20 pt-4" onClick={(e) => {
-          // 点击句子播放（原逻辑保留）
-          const target = e.target;
-          let clickedText = (target.innerText || "").trim();
-          clickedText = clickedText.replace(/🔊/g, '').trim();
-          if (currentLesson && clickedText) {
-            const index = currentLesson.script.findIndex(s => {
-              const cleanKr = s.kr.trim();
-              return clickedText.includes(cleanKr) || cleanKr.includes(clickedText);
-            });
-            if (index !== -1) {
-              const item = currentLesson.script[index];
-              handleSentenceClick(index, item.start || 0, item.end || audioRef.current?.duration);
-            }
-          }
-        }}>
+        {/* 内容加载显示 */}
+        <div className="flex-1 overflow-y-auto pb-24 pt-2">
           {pageContent()}
         </div>
 
+        {/* 底部导航 */}
         <BottomNav page={page} setPage={setPage} />
-        <audio
-          ref={audioRef}
-          src={
-            currentLesson
-              ? "/" + currentLesson.audioFile.replace("_", "·")
-              : ""
-          }
-        />
       </div>
     </div>
   );
 }
+
+```
