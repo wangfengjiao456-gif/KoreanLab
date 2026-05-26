@@ -583,6 +583,13 @@ const blobUrl = lesson?.audioFile ? `/${lesson.audioFile}` : null;
     setIsAudioPlaying(false);
     if (audioRef.current) { audioRef.current.pause(); audioRef.current.currentTime = 0; }
   }, [lesson?.id]);
+const handleTimeUpdate = () => {
+  if (!audioRef.current || !lesson?.script?.length) return;
+  const { currentTime, duration } = audioRef.current;
+  if (!duration) return;
+  const index = Math.floor((currentTime / duration) * lesson.script.length);
+  setActiveLine(Math.min(index, lesson.script.length - 1));
+};
 
   const toggleAudio = () => {
   if (!audioRef.current) return;
@@ -659,6 +666,7 @@ const blobUrl = lesson?.audioFile ? `/${lesson.audioFile}` : null;
             {blobUrl ? (
               <>
 <audio ref={audioRef} src={blobUrl} preload="auto"
+  onTimeUpdate={handleTimeUpdate}
   onEnded={() => { setIsAudioPlaying(false); onComplete(lesson.id); }}
   onPlay={() => setIsAudioPlaying(true)}
   onPause={() => setIsAudioPlaying(false)} />
