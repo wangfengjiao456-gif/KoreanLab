@@ -595,14 +595,30 @@ const handleTimeUpdate = () => {
   const index = Math.floor((currentTime / duration) * lesson.script.length);
   setActiveLine(Math.min(index, lesson.script.length - 1));
 };
+  const playSentence = (index) => {
+  if (!audioRef.current || !lesson?.script?.length) return;
+  const audio = audioRef.current;
+  if (!audio.duration) return;
+  const seg = audio.duration / lesson.script.length;
+  audio.currentTime = index * seg;
+  audio.play().catch(() => {});
+  audio.ontimeupdate = () => {
+    if (audio.currentTime >= (index + 1) * seg) {
+      audio.pause();
+      audio.ontimeupdate = null;
+    }
+  };
+};
+
 const startRecording = async () => {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const recorder = new MediaRecorder(stream);
+    const mimeType = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/webm';
+const recorder = new MediaRecorder(stream, { mimeType });
     chunksRef.current = [];
     recorder.ondataavailable = e => chunksRef.current.push(e.data);
     recorder.onstop = () => {
-      const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+      const blob = new Blob(chunksRef.current, { type: mimeType });
       setRecordedUrl(URL.createObjectURL(blob));
       stream.getTracks().forEach(t => t.stop());
     };
@@ -623,7 +639,8 @@ const stopRecording = () => {
 };
 
   const toggleAudio = () => {
-  if (!audioRef.current) return;
+if (followMode) return;
+    if (!audioRef.current) return;
   if (isAudioPlaying) {
     audioRef.current.pause();
   } else {
@@ -865,7 +882,8 @@ useEffect(() => {
           {!followMode && (
             <div className="p-3 space-y-1">
               {lesson.script.map((line, i) => (
-                <div key={i} onClick={() => setActiveLine(i)}
+                885  <div key={i} onClick={() => { setActiveLine(i); playSentence(i); }}
+
                   className={`p-3 rounded-xl cursor-pointer transition border-l-4
                     ${activeLine === i ? "bg-blue-50 border-blue-500" : "bg-white border-transparent hover:bg-slate-50"}`}>
                   <div className="flex items-start justify-between gap-2">
