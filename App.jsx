@@ -577,7 +577,8 @@ function LearnPage({ lesson, setPage, onComplete, progress, audioBlobUrls }) {
 const chunksRef = useRef([]);
 const [isRecording, setIsRecording] = useState(false);
 const [recordedUrl, setRecordedUrl] = useState(null);
-
+ const [userInputs, setUserInputs] = useState({});
+  const [checked, setChecked] = useState({}); 
   const done = progress[lesson?.id];
 
 const blobUrl = lesson?.audioFile ? `/${lesson.audioFile}` : null;
@@ -586,6 +587,8 @@ const blobUrl = lesson?.audioFile ? `/${lesson.audioFile}` : null;
     setActiveLine(0); setRevealed({});
     setFollowLine(0); setFollowStep("listen"); setFollowMode(false); setFollowCount(0);
     setIsAudioPlaying(false);
+    setUserInputs({}); 
+    setChecked({});
     if (audioRef.current) { audioRef.current.pause(); audioRef.current.currentTime = 0; }
   }, [lesson?.id]);
 const handleTimeUpdate = () => {
@@ -718,7 +721,7 @@ useEffect(() => {
     <div className="flex flex-col h-full">
       {/* 封面 */}
       <div className="bg-gradient-to-br from-slate-900 to-blue-950 relative px-5 pt-4 pb-5">
-        <div className="absolute top-0 right-0 w-24 h-24 bg-orange-500/10 rounded-full -translate-y-4 translate-x-4" />
+       
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <span className="text-[10px] font-bold uppercase text-orange-400 bg-orange-900/40 px-2 py-0.5 rounded">
@@ -907,6 +910,31 @@ useEffect(() => {
                           className="text-[10px] text-blue-500 mt-1 underline">显示译文</button>
                       )}
                     </div>
+                    {dictMode && (
+  <div className="mt-2 space-y-1">
+    <div className="flex gap-2">
+      <input
+        value={userInputs[i] || ""}
+        onChange={e => setUserInputs(u => ({ ...u, [i]: e.target.value }))}
+        placeholder="用韩语输入这句话..."
+        className="flex-1 text-sm border border-slate-200 rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-blue-300"
+      />
+      <button
+        onClick={() => setChecked(c => ({ ...c, [i]: true }))}
+        className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-bold">
+        检查
+      </button>
+    </div>
+    {checked[i] && (
+      <p className={`text-xs font-bold px-2 py-1 rounded ${
+        userInputs[i]?.trim() === line.kr.trim()
+          ? "bg-green-100 text-green-600" : "bg-red-50 text-red-500"}`}>
+        {userInputs[i]?.trim() === line.kr.trim() ? "✓ 正确！" : `正确答案：${line.kr}`}
+      </p>
+    )}
+  </div>
+)}
+
                     <span className="text-slate-300 text-xs font-mono flex-shrink-0">{String(i + 1).padStart(2, "0")}</span>
                   </div>
                 </div>
