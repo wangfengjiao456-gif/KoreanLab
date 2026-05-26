@@ -387,7 +387,7 @@ function HomePage({ setPage, setActiveLesson, progress, audioBlobUrls }) {
             const hasAudio   = !!lesson.audioFile;
             const hasContent = lesson.script && lesson.script.length > 0;
             const isDone     = progress[lesson.id];
-            const blobUrl    = hasAudio ? audioBlobUrls[lesson.audioFile] : null;
+            const blobUrl = hasAudio ? `/${lesson.audioFile}` : null;
 
             return (
               <div key={lesson.id}
@@ -522,7 +522,7 @@ function CoursesPage({ setPage, setActiveLesson, progress, audioBlobUrls }) {
           const hasAudio   = !!lesson.audioFile;
           const hasContent = lesson.script && lesson.script.length > 0;
           const isDone     = progress[lesson.id];
-          const blobUrl    = hasAudio ? audioBlobUrls[lesson.audioFile] : null;
+          const blobUrl = hasAudio ? `/${lesson.audioFile}` : null;
 
           return (
             <div key={lesson.id}
@@ -575,7 +575,7 @@ function LearnPage({ lesson, setPage, onComplete, progress, audioBlobUrls }) {
   const audioRef = useRef(null);
   const done = progress[lesson?.id];
 
-  const blobUrl = lesson?.audioFile ? audioBlobUrls[lesson.audioFile] : null;
+const blobUrl = lesson?.audioFile ? `/${lesson.audioFile}` : null;
 
   useEffect(() => {
     setActiveLine(0); setRevealed({});
