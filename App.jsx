@@ -573,6 +573,11 @@ function LearnPage({ lesson, setPage, onComplete, progress, audioBlobUrls }) {
   const [vocab, setVocab]         = useState(() => load(VOCAB_STORE_KEY, []));
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const audioRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+const chunksRef = useRef([]);
+const [isRecording, setIsRecording] = useState(false);
+const [recordedUrl, setRecordedUrl] = useState(null);
+
   const done = progress[lesson?.id];
 
 const blobUrl = lesson?.audioFile ? `/${lesson.audioFile}` : null;
