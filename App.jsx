@@ -585,10 +585,13 @@ const blobUrl = lesson?.audioFile ? `/${lesson.audioFile}` : null;
   }, [lesson?.id]);
 
   const toggleAudio = () => {
-    if (!audioRef.current) return;
-    if (isAudioPlaying) { audioRef.current.pause(); setIsAudioPlaying(false); }
-    else { audioRef.current.play(); setIsAudioPlaying(true); }
-  };
+  if (!audioRef.current) return;
+  if (isAudioPlaying) {
+    audioRef.current.pause();
+  } else {
+    audioRef.current.play().catch(err => console.warn('播放失败:', err));
+  }
+};
 
   const nextFollowStep = () => {
     if (followStep === "listen") {
@@ -655,10 +658,11 @@ const blobUrl = lesson?.audioFile ? `/${lesson.audioFile}` : null;
           <div className="flex flex-col items-center gap-1">
             {blobUrl ? (
               <>
-                <audio ref={audioRef} src={blobUrl}
-                  onEnded={() => { setIsAudioPlaying(false); onComplete(lesson.id); }}
-                  onPlay={() => setIsAudioPlaying(true)}
-                  onPause={() => setIsAudioPlaying(false)} />
+<audio ref={audioRef} src={blobUrl} preload="auto"
+  onEnded={() => { setIsAudioPlaying(false); onComplete(lesson.id); }}
+  onPlay={() => setIsAudioPlaying(true)}
+  onPause={() => setIsAudioPlaying(false)} />
+>
                 <button onClick={toggleAudio}
                   className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition
                     ${isAudioPlaying ? "bg-orange-500 text-white" : "bg-blue-600 text-white hover:bg-blue-700"}`}>
